@@ -1,23 +1,12 @@
 import { Request, Response } from 'express';
-import { NLPService } from '../services/nlpService';
-import { TaskRouter } from '../services/taskRouter';
-import { AgentCommunicator } from '../services/agentCommunicator';
+import { analyzeQuery } from '../services/nlpService';
+import { routeTask } from '../services/taskRouter';
+import { processWithAgents } from '../services/agentCommunicator';
 import { logger } from '../utils/logger';
 import { validateOrchestrationRequest } from '../middleware/validation';
-import { OrchestrationRequest, OrchestrationResponse } from '../types';
+import { OrchestrationRequest, OrchestrationResponse, AgentSelection } from '../types';
 
-export class OrchestratorController {
-  private nlpService: NLPService;
-  private taskRouter: TaskRouter;
-  private agentCommunicator: AgentCommunicator;
-
-  constructor() {
-    this.nlpService = new NLPService();
-    this.taskRouter = new TaskRouter();
-    this.agentCommunicator = new AgentCommunicator();
-  }
-
-  public orchestrate = async (req: Request, res: Response): Promise<void> => {
+export async function orchestrate(req: Request, res: Response): Promise<void> {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     try {
@@ -40,19 +29,19 @@ export class OrchestratorController {
 
       // Step 1: Analyze user query with NLP
       logger.info('Starting NLP analysis', { requestId });
-      const nlpAnalysis = await this.nlpService.analyzeQuery(orchestrationRequest.query);
+      const nlpAnalysis = await analyzeQuery(orchestrationRequest.query);
       
       // Step 2: Route task to appropriate agents
       logger.info('Routing task to agents', { requestId, intent: nlpAnalysis.intent });
-      const routingDecision = await this.taskRouter.routeTask(nlpAnalysis, orchestrationRequest.context);
+      const routingDecision = await routeTask(nlpAnalysis, orchestrationRequest.context);
 
       // Step 3: Communicate with selected agents
       logger.info('Communicating with agents', { 
         requestId, 
-        selectedAgents: routingDecision.selectedAgents.map(a => a.type) 
+        selectedAgents: routingDecision.selectedAgents.map((a: AgentSelection) => a.type) 
       });
       
-      const agentResults = await this.agentCommunicator.processWithAgents(
+      const agentResults = await processWithAgents(
         routingDecision.selectedAgents,
         orchestrationRequest,
         requestId
@@ -68,7 +57,7 @@ export class OrchestratorController {
           routingDecision: {
             strategy: routingDecision.strategy,
             confidence: routingDecision.confidence,
-            selectedAgents: routingDecision.selectedAgents.map(a => ({
+            selectedAgents: routingDecision.selectedAgents.map((a: AgentSelection) => ({
               type: a.type,
               priority: a.priority,
               reasoning: a.reasoning
@@ -101,7 +90,4 @@ export class OrchestratorController {
         timestamp: new Date().toISOString()
       });
     }
-  };
 }
-
-export const orchestratorController = new OrchestratorController();

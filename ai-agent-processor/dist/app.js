@@ -55,7 +55,7 @@ app.get('/api/v1/agents', (req, res) => {
         }
     });
 });
-app.post('/api/v1/process', agentController_1.agentController.processWithAgent);
+app.post('/api/v1/process', agentController_1.processWithAgent);
 app.use((error, req, res, next) => {
     logger_1.logger.error('Unhandled error:', error);
     res.status(500).json({

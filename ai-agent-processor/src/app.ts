@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { agentController } from './controllers/agentController';
+import { processWithAgent } from './controllers/agentController';
 import { logger } from './utils/logger';
 
 dotenv.config();
@@ -62,7 +62,7 @@ app.get('/api/v1/agents', (req, res) => {
 });
 
 // Main agent processing endpoint
-app.post('/api/v1/process', agentController.processWithAgent);
+app.post('/api/v1/process', processWithAgent);
 
 // Error handling middleware
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { orchestratorController } from './controllers/orchestratorController';
+import { orchestrate } from './controllers/orchestratorController';
 import { logger } from './utils/logger';
 
 dotenv.config();
@@ -162,7 +162,7 @@ app.get('/api/v1/health', (req, res) => {
 });
 
 // Main orchestration endpoint
-app.post('/api/v1/orchestrate', orchestratorController.orchestrate);
+app.post('/api/v1/orchestrate', orchestrate);
 
 // Error handling middleware
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

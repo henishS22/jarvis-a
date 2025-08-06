@@ -1,103 +1,102 @@
 import { logger } from '../utils/logger';
 import { NLPAnalysis, RoutingDecision, AgentSelection, TaskContext } from '../types';
 
-export class TaskRouter {
-  /**
-   * Routes tasks to appropriate agents based on NLP analysis and context
-   */
-  public async routeTask(nlpAnalysis: NLPAnalysis, context?: TaskContext): Promise<RoutingDecision> {
-    try {
-      logger.info('Starting task routing', { 
-        intent: nlpAnalysis.intent.category,
-        complexity: nlpAnalysis.complexity 
-      });
+/**
+ * Routes tasks to appropriate agents based on NLP analysis and context
+ */
+export async function routeTask(nlpAnalysis: NLPAnalysis, context?: TaskContext): Promise<RoutingDecision> {
+  try {
+    logger.info('Starting task routing', { 
+      intent: nlpAnalysis.intent.category,
+      complexity: nlpAnalysis.complexity 
+    });
 
-      // Determine routing strategy
-      const strategy = this.determineRoutingStrategy(nlpAnalysis, context);
-      
-      // Select appropriate agents
-      const selectedAgents = await this.selectAgents(nlpAnalysis, strategy, context);
-      
-      // Calculate overall confidence
-      const confidence = this.calculateRoutingConfidence(nlpAnalysis, selectedAgents);
+    // Determine routing strategy
+    const strategy = determineRoutingStrategy(nlpAnalysis, context);
+    
+    // Select appropriate agents
+    const selectedAgents = await selectAgents(nlpAnalysis, strategy, context);
+    
+    // Calculate overall confidence
+    const confidence = calculateRoutingConfidence(nlpAnalysis, selectedAgents);
 
-      const routingDecision: RoutingDecision = {
-        strategy,
-        selectedAgents,
-        confidence,
-        reasoning: this.generateRoutingReasoning(nlpAnalysis, selectedAgents),
-        fallbackAgents: this.selectFallbackAgents(selectedAgents),
-        estimatedProcessingTime: this.estimateProcessingTime(selectedAgents, nlpAnalysis.complexity),
-        timestamp: new Date().toISOString()
-      };
+    const routingDecision: RoutingDecision = {
+      strategy,
+      selectedAgents,
+      confidence,
+      reasoning: generateRoutingReasoning(nlpAnalysis, selectedAgents),
+      fallbackAgents: selectFallbackAgents(selectedAgents),
+      estimatedProcessingTime: estimateProcessingTime(selectedAgents, nlpAnalysis.complexity),
+      timestamp: new Date().toISOString()
+    };
 
-      logger.info('Task routing completed', {
-        strategy: routingDecision.strategy,
-        agentCount: selectedAgents.length,
-        confidence: confidence
-      });
+    logger.info('Task routing completed', {
+      strategy: routingDecision.strategy,
+      agentCount: selectedAgents.length,
+      confidence: confidence
+    });
 
-      return routingDecision;
+    return routingDecision;
 
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Task routing failed', { error: errorMessage });
-      throw new Error(`Task routing failed: ${errorMessage}`);
-    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Task routing failed', { error: errorMessage });
+    throw new Error(`Task routing failed: ${errorMessage}`);
+  }
+}
+
+function determineRoutingStrategy(nlpAnalysis: NLPAnalysis, context?: TaskContext): 'single' | 'parallel' | 'sequential' | 'hybrid' {
+  const { intent, complexity, priority } = nlpAnalysis;
+
+  // High-priority or urgent tasks prefer parallel processing
+  if (priority === 'urgent' || priority === 'high') {
+    return complexity === 'high' ? 'hybrid' : 'parallel';
   }
 
-  private determineRoutingStrategy(nlpAnalysis: NLPAnalysis, context?: TaskContext): 'single' | 'parallel' | 'sequential' | 'hybrid' {
-    const { intent, complexity, priority } = nlpAnalysis;
-
-    // High-priority or urgent tasks prefer parallel processing
-    if (priority === 'urgent' || priority === 'high') {
-      return complexity === 'high' ? 'hybrid' : 'parallel';
-    }
-
-    // Complex tasks that require multiple steps use sequential
-    if (complexity === 'high' && this.requiresSequentialProcessing(intent.category)) {
-      return 'sequential';
-    }
-
-    // Simple, single-domain tasks use single agent
-    if (complexity === 'low' && this.isSingleDomainTask(intent.category)) {
-      return 'single';
-    }
-
-    // Default to parallel for efficiency
-    return 'parallel';
+  // Complex tasks that require multiple steps use sequential
+  if (complexity === 'high' && requiresSequentialProcessing(intent.category)) {
+    return 'sequential';
   }
 
-  private async selectAgents(nlpAnalysis: NLPAnalysis, strategy: string, context?: TaskContext): Promise<AgentSelection[]> {
-    const { intent, entities, complexity } = nlpAnalysis;
-    const selectedAgents: AgentSelection[] = [];
-
-    // Primary agent selection based on intent
-    const primaryAgent = this.selectPrimaryAgent(intent.category, complexity);
-    if (primaryAgent) {
-      selectedAgents.push(primaryAgent);
-    }
-
-    // Secondary agents based on entities and complexity
-    const secondaryAgents = await this.selectSecondaryAgents(entities, complexity, intent.category);
-    selectedAgents.push(...secondaryAgents);
-
-    // Ensure we have at least one agent
-    if (selectedAgents.length === 0) {
-      selectedAgents.push({
-        type: 'general_assistant',
-        priority: 1,
-        reasoning: 'Fallback to general assistant for unrecognized intent',
-        capabilities: ['general_query_processing', 'basic_nlp'],
-        maturityLevel: 'M2',
-        estimatedProcessingTime: 3000
-      });
-    }
-
-    return selectedAgents;
+  // Simple, single-domain tasks use single agent
+  if (complexity === 'low' && isSingleDomainTask(intent.category)) {
+    return 'single';
   }
 
-  private selectPrimaryAgent(intentCategory: string, complexity: string): AgentSelection | null {
+  // Default to parallel for efficiency
+  return 'parallel';
+}
+
+async function selectAgents(nlpAnalysis: NLPAnalysis, strategy: string, context?: TaskContext): Promise<AgentSelection[]> {
+  const { intent, entities, complexity } = nlpAnalysis;
+  const selectedAgents: AgentSelection[] = [];
+
+  // Primary agent selection based on intent
+  const primaryAgent = selectPrimaryAgent(intent.category, complexity);
+  if (primaryAgent) {
+    selectedAgents.push(primaryAgent);
+  }
+
+  // Secondary agents based on entities and complexity
+  const secondaryAgents = await selectSecondaryAgents(entities, complexity, intent.category);
+  selectedAgents.push(...secondaryAgents);
+
+  // Ensure we have at least one agent
+  if (selectedAgents.length === 0) {
+    selectedAgents.push({
+      type: 'general_assistant',
+      priority: 1,
+      reasoning: 'Fallback to general assistant for unrecognized intent',
+      capabilities: ['general_query_processing', 'basic_nlp'],
+      maturityLevel: 'M2',
+      estimatedProcessingTime: 3000
+    });
+  }
+
+  return selectedAgents;
+}
+
+function selectPrimaryAgent(intentCategory: string, complexity: string): AgentSelection | null {
     const agentMap: Record<string, Partial<AgentSelection>> = {
       recruitment: {
         type: 'recruitment_agent',
@@ -135,11 +134,11 @@ export class TaskRouter {
       reasoning: `Primary agent for ${intentCategory} tasks`,
       capabilities: agentConfig.capabilities!,
       maturityLevel: agentConfig.maturityLevel!,
-      estimatedProcessingTime: this.getBaseProcessingTime(complexity)
+      estimatedProcessingTime: getBaseProcessingTime(complexity)
     };
-  }
+}
 
-  private async selectSecondaryAgents(entities: any[], complexity: string, primaryIntent: string): Promise<AgentSelection[]> {
+async function selectSecondaryAgents(entities: any[], complexity: string, primaryIntent: string): Promise<AgentSelection[]> {
     const secondaryAgents: AgentSelection[] = [];
 
     // If we found financial entities and primary isn't treasury, add treasury agent
@@ -150,7 +149,7 @@ export class TaskRouter {
         reasoning: 'Financial entities detected in query',
         capabilities: ['payment_processing', 'financial_analysis'],
         maturityLevel: 'M3',
-        estimatedProcessingTime: this.getBaseProcessingTime(complexity) * 0.7
+        estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.7
       });
     }
 
@@ -162,7 +161,7 @@ export class TaskRouter {
         reasoning: 'Contact information detected in query',
         capabilities: ['contact_management', 'lead_qualification'],
         maturityLevel: 'M3',
-        estimatedProcessingTime: this.getBaseProcessingTime(complexity) * 0.5
+        estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.5
       });
     }
 
@@ -174,14 +173,14 @@ export class TaskRouter {
         reasoning: 'Complex task requires documentation and communication support',
         capabilities: ['documentation', 'summary_generation'],
         maturityLevel: 'M4',
-        estimatedProcessingTime: this.getBaseProcessingTime(complexity) * 0.3
+        estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.3
       });
     }
 
     return secondaryAgents;
-  }
+}
 
-  private selectFallbackAgents(selectedAgents: AgentSelection[]): AgentSelection[] {
+function selectFallbackAgents(selectedAgents: AgentSelection[]): AgentSelection[] {
     // Always include general assistant as ultimate fallback
     const fallbacks: AgentSelection[] = [{
       type: 'general_assistant',
@@ -207,9 +206,9 @@ export class TaskRouter {
     });
 
     return fallbacks;
-  }
+}
 
-  private calculateRoutingConfidence(nlpAnalysis: NLPAnalysis, selectedAgents: AgentSelection[]): number {
+function calculateRoutingConfidence(nlpAnalysis: NLPAnalysis, selectedAgents: AgentSelection[]): number {
     let confidence = nlpAnalysis.confidence;
 
     // Boost confidence if we have a direct match
@@ -222,9 +221,9 @@ export class TaskRouter {
     confidence -= fallbackCount * 0.05;
 
     return Math.max(0.1, Math.min(0.95, confidence));
-  }
+}
 
-  private generateRoutingReasoning(nlpAnalysis: NLPAnalysis, selectedAgents: AgentSelection[]): string {
+function generateRoutingReasoning(nlpAnalysis: NLPAnalysis, selectedAgents: AgentSelection[]): string {
     const reasons = [
       `Intent "${nlpAnalysis.intent.category}" detected with ${(nlpAnalysis.confidence * 100).toFixed(0)}% confidence`,
       `Task complexity assessed as ${nlpAnalysis.complexity}`,
@@ -236,9 +235,9 @@ export class TaskRouter {
     }
 
     return reasons.join('. ');
-  }
+}
 
-  private estimateProcessingTime(selectedAgents: AgentSelection[], complexity: string): number {
+function estimateProcessingTime(selectedAgents: AgentSelection[], complexity: string): number {
     if (selectedAgents.length === 0) return 1000;
 
     const maxTime = Math.max(...selectedAgents.map(a => a.estimatedProcessingTime));
@@ -246,24 +245,23 @@ export class TaskRouter {
 
     // Return max time for sequential, average for parallel
     return Math.round(selectedAgents.length > 1 ? avgTime : maxTime);
-  }
+}
 
-  private requiresSequentialProcessing(intentCategory: string): boolean {
+function requiresSequentialProcessing(intentCategory: string): boolean {
     // Some tasks inherently require sequential processing
     return ['project_management', 'treasury_control'].includes(intentCategory);
-  }
+}
 
-  private isSingleDomainTask(intentCategory: string): boolean {
+function isSingleDomainTask(intentCategory: string): boolean {
     // Simple tasks that can be handled by a single agent
     return ['content_generation'].includes(intentCategory);
-  }
+}
 
-  private getBaseProcessingTime(complexity: string): number {
+function getBaseProcessingTime(complexity: string): number {
     switch (complexity) {
       case 'low': return 1500;
       case 'medium': return 3000;
       case 'high': return 5000;
       default: return 2000;
     }
-  }
 }

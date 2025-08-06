@@ -1,13 +1,3 @@
 import { NLPAnalysis } from '../types';
-export declare class NLPService {
-    analyzeQuery(query: string): Promise<NLPAnalysis>;
-    private extractIntent;
-    private extractEntities;
-    private assessComplexity;
-    private determinePriority;
-    private calculateConfidence;
-    private detectLanguage;
-    private analyzeSentiment;
-    private extractKeywords;
-}
+export declare function analyzeQuery(query: string): Promise<NLPAnalysis>;
 //# sourceMappingURL=nlpService.d.ts.map

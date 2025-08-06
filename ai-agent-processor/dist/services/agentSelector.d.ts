@@ -4,13 +4,7 @@ export interface ServiceSelection {
     reasoning: string;
     confidence: number;
 }
-export declare class AgentSelector {
-    selectAIService(agentType: string, query: string, capabilities: string[]): Promise<ServiceSelection>;
-    private getServicePreference;
-    private detectFinancialContent;
-    private detectCreativeContent;
-    private detectAnalyticalContent;
-    getAgentCapabilities(agentType: string): string[];
-    isAgentTypeSupported(agentType: string): boolean;
-}
+export declare function selectAIService(agentType: string, query: string, capabilities: string[]): Promise<ServiceSelection>;
+export declare function getAgentCapabilities(agentType: string): string[];
+export declare function isAgentTypeSupported(agentType: string): boolean;
 //# sourceMappingURL=agentSelector.d.ts.map

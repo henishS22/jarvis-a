@@ -5,66 +5,69 @@ import { TaskContext } from '../types';
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const DEFAULT_MODEL = 'gpt-4o';
 
-export class OpenAIService {
-  private openai: OpenAI;
+// Initialize OpenAI client
+let openaiClient: OpenAI | null = null;
 
-  constructor() {
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       throw new Error('OpenAI API key not configured');
     }
-
-    this.openai = new OpenAI({ apiKey });
+    openaiClient = new OpenAI({ apiKey });
   }
+  return openaiClient;
+}
 
-  public async processQuery(
-    query: string,
-    agentType: string,
-    capabilities: string[],
-    context?: TaskContext,
-    model: string = DEFAULT_MODEL
-  ): Promise<{ result: any; tokensUsed: number }> {
-    try {
-      logger.info('Processing query with OpenAI', { agentType, model, capabilities });
+export async function processQuery(
+  query: string,
+  agentType: string,
+  capabilities: string[],
+  context?: TaskContext,
+  model: string = DEFAULT_MODEL
+): Promise<{ result: any; tokensUsed: number }> {
+  try {
+    logger.info('Processing query with OpenAI', { agentType, model, capabilities });
 
-      const systemPrompt = this.buildSystemPrompt(agentType, capabilities);
-      const userPrompt = this.buildUserPrompt(query, context);
+    const openai = getOpenAIClient();
+    const systemPrompt = buildSystemPrompt(agentType, capabilities);
+    const userPrompt = buildUserPrompt(query, context);
 
-      const response = await this.openai.chat.completions.create({
-        model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        response_format: { type: 'json_object' },
-        temperature: this.getTemperatureForAgent(agentType),
-        max_tokens: this.getMaxTokensForAgent(agentType)
-      });
+    const response = await openai.chat.completions.create({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      response_format: { type: 'json_object' },
+      temperature: getTemperatureForAgent(agentType),
+      max_tokens: getMaxTokensForAgent(agentType)
+    });
 
-      const result = JSON.parse(response.choices[0].message.content || '{}');
-      const tokensUsed = response.usage?.total_tokens || 0;
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    const tokensUsed = response.usage?.total_tokens || 0;
 
-      logger.info('OpenAI processing completed', { 
-        agentType, 
-        tokensUsed, 
-        model,
-        hasResult: !!result 
-      });
+    logger.info('OpenAI processing completed', { 
+      agentType, 
+      tokensUsed, 
+      model,
+      hasResult: !!result 
+    });
 
-      return { result, tokensUsed };
+    return { result, tokensUsed };
 
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('OpenAI processing failed', { 
-        agentType, 
-        model, 
-        error: errorMessage 
-      });
-      throw new Error(`OpenAI processing failed: ${errorMessage}`);
-    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('OpenAI processing failed', { 
+      agentType, 
+      model, 
+      error: errorMessage 
+    });
+    throw new Error(`OpenAI processing failed: ${errorMessage}`);
   }
+}
 
-  private buildSystemPrompt(agentType: string, capabilities: string[]): string {
+function buildSystemPrompt(agentType: string, capabilities: string[]): string {
     const basePrompt = `You are an AI agent specialized in ${agentType.replace('_', ' ')}. Your capabilities include: ${capabilities.join(', ')}.`;
 
     const agentPrompts: Record<string, string> = {
@@ -177,9 +180,9 @@ Always respond in JSON format with these fields:
     };
 
     return agentPrompts[agentType] || agentPrompts.general_assistant;
-  }
+}
 
-  private buildUserPrompt(query: string, context?: TaskContext): string {
+function buildUserPrompt(query: string, context?: TaskContext): string {
     let prompt = `Please process the following request: ${query}`;
 
     if (context) {
@@ -196,9 +199,9 @@ Always respond in JSON format with these fields:
     prompt += '\n\nPlease provide a comprehensive response in the specified JSON format.';
 
     return prompt;
-  }
+}
 
-  private getTemperatureForAgent(agentType: string): number {
+function getTemperatureForAgent(agentType: string): number {
     // Different agents need different creativity levels
     const temperatures: Record<string, number> = {
       recruitment_agent: 0.3,    // Low creativity for accuracy
@@ -210,9 +213,9 @@ Always respond in JSON format with these fields:
     };
 
     return temperatures[agentType] || 0.5;
-  }
+}
 
-  private getMaxTokensForAgent(agentType: string): number {
+function getMaxTokensForAgent(agentType: string): number {
     // Different agents may need different response lengths
     const maxTokens: Record<string, number> = {
       recruitment_agent: 1500,
@@ -224,19 +227,19 @@ Always respond in JSON format with these fields:
     };
 
     return maxTokens[agentType] || 1000;
-  }
+}
 
-  /**
-   * Check if OpenAI service is available
-   */
-  public async checkHealth(): Promise<boolean> {
-    try {
-      const response = await this.openai.models.list();
-      return response.data.length > 0;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('OpenAI health check failed', { error: errorMessage });
-      return false;
-    }
+/**
+ * Check if OpenAI service is available
+ */
+export async function checkHealth(): Promise<boolean> {
+  try {
+    const openai = getOpenAIClient();
+    const response = await openai.models.list();
+    return response.data.length > 0;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('OpenAI health check failed', { error: errorMessage });
+    return false;
   }
 }

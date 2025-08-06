@@ -155,7 +155,7 @@ app.get('/api/v1/health', (req, res) => {
         version: '1.0.0'
     });
 });
-app.post('/api/v1/orchestrate', orchestratorController_1.orchestratorController.orchestrate);
+app.post('/api/v1/orchestrate', orchestratorController_1.orchestrate);
 app.use((error, req, res, next) => {
     logger_1.logger.error('Unhandled error:', error);
     res.status(500).json({

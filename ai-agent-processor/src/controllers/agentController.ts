@@ -1,23 +1,12 @@
 import { Request, Response } from 'express';
-import { AgentSelector } from '../services/agentSelector';
-import { OpenAIService } from '../services/openaiService';
-import { AnthropicService } from '../services/anthropicService';
+import { selectAIService } from '../services/agentSelector';
+import * as openaiService from '../services/openaiService';
+import * as anthropicService from '../services/anthropicService';
 import { logger } from '../utils/logger';
 import { validateAgentRequest } from '../middleware/validation';
 import { AgentProcessingRequest, AgentProcessingResponse } from '../types';
 
-export class AgentController {
-  private agentSelector: AgentSelector;
-  private openaiService: OpenAIService;
-  private anthropicService: AnthropicService;
-
-  constructor() {
-    this.agentSelector = new AgentSelector();
-    this.openaiService = new OpenAIService();
-    this.anthropicService = new AnthropicService();
-  }
-
-  public processWithAgent = async (req: Request, res: Response): Promise<void> => {
+export async function processWithAgent(req: Request, res: Response): Promise<void> {
     const requestId = req.get('X-Request-ID') || `agent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const startTime = Date.now();
 
@@ -46,7 +35,7 @@ export class AgentController {
       const agentRequest: AgentProcessingRequest = req.body;
 
       // Select appropriate AI service and model
-      const serviceSelection = await this.agentSelector.selectAIService(
+      const serviceSelection = await selectAIService(
         agentRequest.agentType,
         agentRequest.query,
         agentRequest.capabilities
@@ -65,7 +54,7 @@ export class AgentController {
       let tokensUsed: number = 0;
 
       if (serviceSelection.service === 'openai') {
-        const openaiResult = await this.openaiService.processQuery(
+        const openaiResult = await openaiService.processQuery(
           agentRequest.query,
           agentRequest.agentType,
           agentRequest.capabilities,
@@ -76,7 +65,7 @@ export class AgentController {
         aiModel = serviceSelection.model;
         tokensUsed = openaiResult.tokensUsed;
       } else {
-        const anthropicResult = await this.anthropicService.processQuery(
+        const anthropicResult = await anthropicService.processQuery(
           agentRequest.query,
           agentRequest.agentType,
           agentRequest.capabilities,
@@ -160,7 +149,4 @@ export class AgentController {
         }
       });
     }
-  };
 }
-
-export const agentController = new AgentController();

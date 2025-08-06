@@ -1,10 +1,3 @@
 import { Request, Response } from 'express';
-export declare class OrchestratorController {
-    private nlpService;
-    private taskRouter;
-    private agentCommunicator;
-    constructor();
-    orchestrate: (req: Request, res: Response) => Promise<void>;
-}
-export declare const orchestratorController: OrchestratorController;
+export declare function orchestrate(req: Request, res: Response): Promise<void>;
 //# sourceMappingURL=orchestratorController.d.ts.map

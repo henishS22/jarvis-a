@@ -7,49 +7,48 @@ export interface ServiceSelection {
   confidence: number;
 }
 
-export class AgentSelector {
-  /**
-   * Selects the most appropriate AI service and model for a given agent type and query
-   */
-  public async selectAIService(
-    agentType: string,
-    query: string,
-    capabilities: string[]
-  ): Promise<ServiceSelection> {
-    try {
-      logger.info('Selecting AI service', { agentType, capabilities, queryLength: query.length });
+/**
+ * Selects the most appropriate AI service and model for a given agent type and query
+ */
+export async function selectAIService(
+  agentType: string,
+  query: string,
+  capabilities: string[]
+): Promise<ServiceSelection> {
+  try {
+    logger.info('Selecting AI service', { agentType, capabilities, queryLength: query.length });
 
-      // Check API key availability
-      const openaiAvailable = !!process.env.OPENAI_API_KEY;
-      const anthropicAvailable = !!process.env.ANTHROPIC_API_KEY;
+    // Check API key availability
+    const openaiAvailable = !!process.env.OPENAI_API_KEY;
+    const anthropicAvailable = !!process.env.ANTHROPIC_API_KEY;
 
-      if (!openaiAvailable && !anthropicAvailable) {
-        throw new Error('No AI service API keys configured');
-      }
-
-      // Agent-specific service preferences based on capabilities and use cases
-      const selection = this.getServicePreference(agentType, query, capabilities, {
-        openaiAvailable,
-        anthropicAvailable
-      });
-
-      logger.info('AI service selected', {
-        agentType,
-        selectedService: selection.service,
-        selectedModel: selection.model,
-        reasoning: selection.reasoning
-      });
-
-      return selection;
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('AI service selection failed', { agentType, error: errorMessage });
-      throw new Error(`AI service selection failed: ${errorMessage}`);
+    if (!openaiAvailable && !anthropicAvailable) {
+      throw new Error('No AI service API keys configured');
     }
-  }
 
-  private getServicePreference(
+    // Agent-specific service preferences based on capabilities and use cases
+    const selection = getServicePreference(agentType, query, capabilities, {
+      openaiAvailable,
+      anthropicAvailable
+    });
+
+    logger.info('AI service selected', {
+      agentType,
+      selectedService: selection.service,
+      selectedModel: selection.model,
+      reasoning: selection.reasoning
+    });
+
+    return selection;
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('AI service selection failed', { agentType, error: errorMessage });
+    throw new Error(`AI service selection failed: ${errorMessage}`);
+  }
+}
+
+function getServicePreference(
     agentType: string,
     query: string,
     capabilities: string[],
@@ -58,9 +57,9 @@ export class AgentSelector {
     
     const queryLength = query.length;
     const isComplexQuery = queryLength > 1000 || query.split(' ').length > 200;
-    const hasFinancialContent = this.detectFinancialContent(query);
-    const hasCreativeContent = this.detectCreativeContent(query);
-    const hasAnalyticalContent = this.detectAnalyticalContent(query);
+    const hasFinancialContent = detectFinancialContent(query);
+    const hasCreativeContent = detectCreativeContent(query);
+    const hasAnalyticalContent = detectAnalyticalContent(query);
 
     // Service selection logic based on agent type and content analysis
     const selectionRules: Array<{
@@ -159,7 +158,7 @@ export class AgentSelector {
     throw new Error('No AI services available');
   }
 
-  private detectFinancialContent(query: string): boolean {
+function detectFinancialContent(query: string): boolean {
     const financialKeywords = [
       'payment', 'invoice', 'budget', 'cost', 'price', 'financial', 'money',
       'revenue', 'profit', 'expense', 'transaction', 'billing', 'accounting',
@@ -170,7 +169,7 @@ export class AgentSelector {
     return financialKeywords.some(keyword => queryLower.includes(keyword));
   }
 
-  private detectCreativeContent(query: string): boolean {
+function detectCreativeContent(query: string): boolean {
     const creativeKeywords = [
       'write', 'create', 'generate', 'content', 'blog', 'article', 'story',
       'marketing', 'copy', 'description', 'creative', 'draft', 'compose',
@@ -181,7 +180,7 @@ export class AgentSelector {
     return creativeKeywords.some(keyword => queryLower.includes(keyword));
   }
 
-  private detectAnalyticalContent(query: string): boolean {
+function detectAnalyticalContent(query: string): boolean {
     const analyticalKeywords = [
       'analyze', 'analysis', 'compare', 'evaluate', 'assess', 'review',
       'research', 'investigate', 'examine', 'study', 'breakdown', 'insights',
@@ -192,10 +191,10 @@ export class AgentSelector {
     return analyticalKeywords.some(keyword => queryLower.includes(keyword));
   }
 
-  /**
-   * Get agent capabilities based on agent type
-   */
-  public getAgentCapabilities(agentType: string): string[] {
+/**
+ * Get agent capabilities based on agent type
+ */
+export function getAgentCapabilities(agentType: string): string[] {
     const capabilityMap: Record<string, string[]> = {
       recruitment_agent: [
         'resume_processing',
@@ -242,12 +241,12 @@ export class AgentSelector {
     };
 
     return capabilityMap[agentType] || capabilityMap.general_assistant;
-  }
+}
 
-  /**
-   * Validate if an agent type is supported
-   */
-  public isAgentTypeSupported(agentType: string): boolean {
+/**
+ * Validate if an agent type is supported
+ */
+export function isAgentTypeSupported(agentType: string): boolean {
     const supportedTypes = [
       'recruitment_agent',
       'crm_agent',
@@ -258,5 +257,4 @@ export class AgentSelector {
     ];
 
     return supportedTypes.includes(agentType);
-  }
 }

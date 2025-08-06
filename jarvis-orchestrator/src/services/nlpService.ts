@@ -1,52 +1,51 @@
 import { logger } from '../utils/logger';
 import { NLPAnalysis, QueryIntent, EntityExtraction } from '../types';
 
-export class NLPService {
-  /**
-   * Analyzes user query to extract intent, entities, and context
-   */
-  public async analyzeQuery(query: string): Promise<NLPAnalysis> {
-    try {
-      logger.info('Starting NLP analysis', { queryLength: query.length });
+/**
+ * Analyzes user query to extract intent, entities, and context
+ */
+export async function analyzeQuery(query: string): Promise<NLPAnalysis> {
+  try {
+    logger.info('Starting NLP analysis', { queryLength: query.length });
 
-      // Extract intent from query
-      const intent = await this.extractIntent(query);
-      
-      // Extract entities and parameters
-      const entities = await this.extractEntities(query);
-      
-      // Determine complexity and priority
-      const complexity = this.assessComplexity(query, entities);
-      const priority = this.determinePriority(intent, complexity);
+    // Extract intent from query
+    const intent = await extractIntent(query);
+    
+    // Extract entities and parameters
+    const entities = await extractEntities(query);
+    
+    // Determine complexity and priority
+    const complexity = assessComplexity(query, entities);
+    const priority = determinePriority(intent, complexity);
 
-      const analysis: NLPAnalysis = {
-        intent,
-        entities,
-        complexity,
-        priority,
-        confidence: this.calculateConfidence(intent, entities),
-        language: this.detectLanguage(query),
-        sentiment: await this.analyzeSentiment(query),
-        keywords: this.extractKeywords(query),
-        timestamp: new Date().toISOString()
-      };
+    const analysis: NLPAnalysis = {
+      intent,
+      entities,
+      complexity,
+      priority,
+      confidence: calculateConfidence(intent, entities),
+      language: detectLanguage(query),
+      sentiment: await analyzeSentiment(query),
+      keywords: extractKeywords(query),
+      timestamp: new Date().toISOString()
+    };
 
-      logger.info('NLP analysis completed', { 
-        intent: analysis.intent.category,
-        confidence: analysis.confidence,
-        complexity: analysis.complexity
-      });
+    logger.info('NLP analysis completed', { 
+      intent: analysis.intent.category,
+      confidence: analysis.confidence,
+      complexity: analysis.complexity
+    });
 
-      return analysis;
+    return analysis;
 
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('NLP analysis failed', { error: errorMessage });
-      throw new Error(`NLP analysis failed: ${errorMessage}`);
-    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('NLP analysis failed', { error: errorMessage });
+    throw new Error(`NLP analysis failed: ${errorMessage}`);
   }
+}
 
-  private async extractIntent(query: string): Promise<QueryIntent> {
+async function extractIntent(query: string): Promise<QueryIntent> {
     const queryLower = query.toLowerCase();
     
     // Intent classification rules based on JARVIS architecture
@@ -102,9 +101,9 @@ export class NLPService {
       confidence: 0.60,
       subcategory: 'general_assistance'
     };
-  }
+}
 
-  private async extractEntities(query: string): Promise<EntityExtraction[]> {
+async function extractEntities(query: string): Promise<EntityExtraction[]> {
     const entities: EntityExtraction[] = [];
     
     // Email extraction
@@ -160,18 +159,18 @@ export class NLPService {
     });
 
     return entities;
-  }
+}
 
-  private assessComplexity(query: string, entities: EntityExtraction[]): 'low' | 'medium' | 'high' {
+function assessComplexity(query: string, entities: EntityExtraction[]): 'low' | 'medium' | 'high' {
     const wordCount = query.split(' ').length;
     const entityCount = entities.length;
     
     if (wordCount < 10 && entityCount <= 2) return 'low';
     if (wordCount < 25 && entityCount <= 5) return 'medium';
     return 'high';
-  }
+}
 
-  private determinePriority(intent: QueryIntent, complexity: string): 'low' | 'medium' | 'high' | 'urgent' {
+function determinePriority(intent: QueryIntent, complexity: string): 'low' | 'medium' | 'high' | 'urgent' {
     // High priority for recruitment and financial operations
     if (intent.category === 'recruitment' || intent.category === 'treasury_control') {
       return complexity === 'high' ? 'urgent' : 'high';
@@ -184,9 +183,9 @@ export class NLPService {
     
     // Lower priority for content generation and general queries
     return complexity === 'high' ? 'medium' : 'low';
-  }
+}
 
-  private calculateConfidence(intent: QueryIntent, entities: EntityExtraction[]): number {
+function calculateConfidence(intent: QueryIntent, entities: EntityExtraction[]): number {
     let confidence = intent.confidence;
     
     // Boost confidence if we found relevant entities
@@ -196,9 +195,9 @@ export class NLPService {
     }
     
     return Math.round(confidence * 100) / 100;
-  }
+}
 
-  private detectLanguage(query: string): string {
+function detectLanguage(query: string): string {
     // Simple language detection - could be enhanced with proper language detection library
     const frenchWords = ['le', 'la', 'les', 'de', 'du', 'des', 'et', 'ou', 'avec', 'pour'];
     const englishWords = ['the', 'and', 'or', 'with', 'for', 'to', 'from', 'by', 'at', 'in'];
@@ -209,9 +208,9 @@ export class NLPService {
     
     if (frenchCount > englishCount) return 'fr';
     return 'en';
-  }
+}
 
-  private async analyzeSentiment(query: string): Promise<'positive' | 'neutral' | 'negative'> {
+async function analyzeSentiment(query: string): Promise<'positive' | 'neutral' | 'negative'> {
     const positiveWords = ['good', 'great', 'excellent', 'love', 'amazing', 'perfect', 'wonderful'];
     const negativeWords = ['bad', 'terrible', 'hate', 'awful', 'horrible', 'worst', 'disappointing'];
     
@@ -222,9 +221,9 @@ export class NLPService {
     if (positiveCount > negativeCount) return 'positive';
     if (negativeCount > positiveCount) return 'negative';
     return 'neutral';
-  }
+}
 
-  private extractKeywords(query: string): string[] {
+function extractKeywords(query: string): string[] {
     // Remove common stop words and extract meaningful keywords
     const stopWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'cannot', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'this', 'that', 'these', 'those'];
     
@@ -235,5 +234,4 @@ export class NLPService {
     
     // Return unique keywords
     return [...new Set(words)];
-  }
 }
