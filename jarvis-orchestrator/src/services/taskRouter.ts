@@ -81,14 +81,14 @@ async function selectAgents(nlpAnalysis: NLPAnalysis, strategy: string, context?
   const secondaryAgents = await selectSecondaryAgents(entities, complexity, intent.category);
   selectedAgents.push(...secondaryAgents);
 
-  // Ensure we have at least one agent
+  // Ensure we have at least one agent - default to content agent
   if (selectedAgents.length === 0) {
     selectedAgents.push({
-      type: 'general_assistant',
+      type: 'content_agent',
       priority: 1,
-      reasoning: 'Fallback to general assistant for unrecognized intent',
-      capabilities: ['general_query_processing', 'basic_nlp'],
-      maturityLevel: 'M2',
+      reasoning: 'Default to content agent for general assistance',
+      capabilities: ['text_generation', 'general_query_processing'],
+      maturityLevel: 'M4',
       estimatedProcessingTime: 3000
     });
   }
@@ -97,36 +97,32 @@ async function selectAgents(nlpAnalysis: NLPAnalysis, strategy: string, context?
 }
 
 function selectPrimaryAgent(intentCategory: string, complexity: string): AgentSelection | null {
+    // Simplified agent mapping for two-agent system
     const agentMap: Record<string, Partial<AgentSelection>> = {
       recruitment: {
         type: 'recruitment_agent',
         capabilities: ['resume_processing', 'candidate_scoring', 'interview_scheduling'],
         maturityLevel: 'M2'
       },
-      crm: {
-        type: 'crm_agent',
-        capabilities: ['lead_management', 'sales_optimization', 'customer_insights'],
-        maturityLevel: 'M3'
-      },
       content_generation: {
         type: 'content_agent',
         capabilities: ['text_generation', 'content_optimization', 'multi_language'],
         maturityLevel: 'M4'
-      },
-      project_management: {
-        type: 'project_agent',
-        capabilities: ['task_scheduling', 'resource_allocation', 'progress_tracking'],
-        maturityLevel: 'M2'
-      },
-      treasury_control: {
-        type: 'treasury_agent',
-        capabilities: ['payment_processing', 'financial_analysis', 'compliance_check'],
-        maturityLevel: 'M3'
       }
     };
 
     const agentConfig = agentMap[intentCategory];
-    if (!agentConfig) return null;
+    if (!agentConfig) {
+      // Default to content agent for unrecognized intents
+      return {
+        type: 'content_agent',
+        priority: 1,
+        reasoning: `Fallback to content agent for general assistance`,
+        capabilities: ['text_generation', 'content_optimization', 'multi_language'],
+        maturityLevel: 'M4',
+        estimatedProcessingTime: getBaseProcessingTime(complexity)
+      };
+    }
 
     return {
       type: agentConfig.type!,
@@ -141,39 +137,34 @@ function selectPrimaryAgent(intentCategory: string, complexity: string): AgentSe
 async function selectSecondaryAgents(entities: any[], complexity: string, primaryIntent: string): Promise<AgentSelection[]> {
     const secondaryAgents: AgentSelection[] = [];
 
-    // If we found financial entities and primary isn't treasury, add treasury agent
-    if (entities.some(e => e.type === 'currency') && primaryIntent !== 'treasury_control') {
-      secondaryAgents.push({
-        type: 'treasury_agent',
-        priority: 2,
-        reasoning: 'Financial entities detected in query',
-        capabilities: ['payment_processing', 'financial_analysis'],
-        maturityLevel: 'M3',
-        estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.7
-      });
-    }
-
-    // If we found contact information and primary isn't CRM, add CRM agent
-    if (entities.some(e => e.type === 'email' || e.type === 'phone') && primaryIntent !== 'crm') {
-      secondaryAgents.push({
-        type: 'crm_agent',
-        priority: 3,
-        reasoning: 'Contact information detected in query',
-        capabilities: ['contact_management', 'lead_qualification'],
-        maturityLevel: 'M3',
-        estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.5
-      });
-    }
-
-    // For high complexity tasks, add content agent for documentation
-    if (complexity === 'high' && primaryIntent !== 'content_generation') {
+    // Simplified logic for two-agent system
+    // If primary is recruitment but we detect content needs, add content agent
+    if (primaryIntent === 'recruitment' && (
+        entities.some(e => e.type === 'skill') || 
+        complexity === 'high'
+      )) {
       secondaryAgents.push({
         type: 'content_agent',
-        priority: 4,
-        reasoning: 'Complex task requires documentation and communication support',
-        capabilities: ['documentation', 'summary_generation'],
+        priority: 2,
+        reasoning: 'Content generation needed for recruitment documentation',
+        capabilities: ['text_generation', 'documentation'],
         maturityLevel: 'M4',
-        estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.3
+        estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.6
+      });
+    }
+
+    // If primary is content but we detect recruitment entities, add recruitment agent
+    if (primaryIntent === 'content_generation' && (
+        entities.some(e => e.type === 'person') ||
+        entities.some(e => e.type === 'skill')
+      )) {
+      secondaryAgents.push({
+        type: 'recruitment_agent',
+        priority: 2,
+        reasoning: 'Recruitment context detected in content request',
+        capabilities: ['candidate_analysis', 'skill_assessment'],
+        maturityLevel: 'M2',
+        estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.5
       });
     }
 
@@ -181,29 +172,42 @@ async function selectSecondaryAgents(entities: any[], complexity: string, primar
 }
 
 function selectFallbackAgents(selectedAgents: AgentSelection[]): AgentSelection[] {
-    // Always include general assistant as ultimate fallback
-    const fallbacks: AgentSelection[] = [{
-      type: 'general_assistant',
-      priority: 99,
-      reasoning: 'Ultimate fallback for any processing failures',
-      capabilities: ['general_query_processing', 'error_handling'],
-      maturityLevel: 'M2',
-      estimatedProcessingTime: 2000
-    }];
+    const fallbacks: AgentSelection[] = [];
 
-    // Add alternative agents for each selected agent type
+    // Cross-agent fallback strategy for two-agent system
     selectedAgents.forEach(agent => {
       if (agent.type === 'recruitment_agent') {
         fallbacks.push({
           type: 'content_agent',
           priority: 10,
-          reasoning: 'Fallback for recruitment agent using content generation',
+          reasoning: 'Content agent fallback for recruitment tasks',
           capabilities: ['text_processing', 'data_analysis'],
           maturityLevel: 'M4',
           estimatedProcessingTime: 4000
         });
+      } else if (agent.type === 'content_agent') {
+        fallbacks.push({
+          type: 'recruitment_agent',
+          priority: 10,
+          reasoning: 'Recruitment agent fallback for content tasks',
+          capabilities: ['general_processing', 'data_analysis'],
+          maturityLevel: 'M2',
+          estimatedProcessingTime: 3000
+        });
       }
     });
+
+    // Ultimate fallback - use content agent as general purpose
+    if (fallbacks.length === 0) {
+      fallbacks.push({
+        type: 'content_agent',
+        priority: 99,
+        reasoning: 'Content agent as ultimate fallback for general assistance',
+        capabilities: ['general_query_processing', 'text_generation'],
+        maturityLevel: 'M4',
+        estimatedProcessingTime: 2000
+      });
+    }
 
     return fallbacks;
 }
@@ -248,13 +252,13 @@ function estimateProcessingTime(selectedAgents: AgentSelection[], complexity: st
 }
 
 function requiresSequentialProcessing(intentCategory: string): boolean {
-    // Some tasks inherently require sequential processing
-    return ['project_management', 'treasury_control'].includes(intentCategory);
+    // Simplified for two-agent system - most tasks can be parallel
+    return false; // Both recruitment and content can work in parallel
 }
 
 function isSingleDomainTask(intentCategory: string): boolean {
-    // Simple tasks that can be handled by a single agent
-    return ['content_generation'].includes(intentCategory);
+    // Both agent types can handle single-domain tasks effectively
+    return ['content_generation', 'recruitment'].includes(intentCategory);
 }
 
 function getBaseProcessingTime(complexity: string): number {

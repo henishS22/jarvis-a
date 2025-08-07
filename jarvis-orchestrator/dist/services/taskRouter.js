@@ -57,11 +57,11 @@ async function selectAgents(nlpAnalysis, strategy, context) {
     selectedAgents.push(...secondaryAgents);
     if (selectedAgents.length === 0) {
         selectedAgents.push({
-            type: 'general_assistant',
+            type: 'content_agent',
             priority: 1,
-            reasoning: 'Fallback to general assistant for unrecognized intent',
-            capabilities: ['general_query_processing', 'basic_nlp'],
-            maturityLevel: 'M2',
+            reasoning: 'Default to content agent for general assistance',
+            capabilities: ['text_generation', 'general_query_processing'],
+            maturityLevel: 'M4',
             estimatedProcessingTime: 3000
         });
     }
@@ -74,30 +74,23 @@ function selectPrimaryAgent(intentCategory, complexity) {
             capabilities: ['resume_processing', 'candidate_scoring', 'interview_scheduling'],
             maturityLevel: 'M2'
         },
-        crm: {
-            type: 'crm_agent',
-            capabilities: ['lead_management', 'sales_optimization', 'customer_insights'],
-            maturityLevel: 'M3'
-        },
         content_generation: {
             type: 'content_agent',
             capabilities: ['text_generation', 'content_optimization', 'multi_language'],
             maturityLevel: 'M4'
-        },
-        project_management: {
-            type: 'project_agent',
-            capabilities: ['task_scheduling', 'resource_allocation', 'progress_tracking'],
-            maturityLevel: 'M2'
-        },
-        treasury_control: {
-            type: 'treasury_agent',
-            capabilities: ['payment_processing', 'financial_analysis', 'compliance_check'],
-            maturityLevel: 'M3'
         }
     };
     const agentConfig = agentMap[intentCategory];
-    if (!agentConfig)
-        return null;
+    if (!agentConfig) {
+        return {
+            type: 'content_agent',
+            priority: 1,
+            reasoning: `Fallback to content agent for general assistance`,
+            capabilities: ['text_generation', 'content_optimization', 'multi_language'],
+            maturityLevel: 'M4',
+            estimatedProcessingTime: getBaseProcessingTime(complexity)
+        };
+    }
     return {
         type: agentConfig.type,
         priority: 1,
@@ -109,59 +102,64 @@ function selectPrimaryAgent(intentCategory, complexity) {
 }
 async function selectSecondaryAgents(entities, complexity, primaryIntent) {
     const secondaryAgents = [];
-    if (entities.some(e => e.type === 'currency') && primaryIntent !== 'treasury_control') {
-        secondaryAgents.push({
-            type: 'treasury_agent',
-            priority: 2,
-            reasoning: 'Financial entities detected in query',
-            capabilities: ['payment_processing', 'financial_analysis'],
-            maturityLevel: 'M3',
-            estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.7
-        });
-    }
-    if (entities.some(e => e.type === 'email' || e.type === 'phone') && primaryIntent !== 'crm') {
-        secondaryAgents.push({
-            type: 'crm_agent',
-            priority: 3,
-            reasoning: 'Contact information detected in query',
-            capabilities: ['contact_management', 'lead_qualification'],
-            maturityLevel: 'M3',
-            estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.5
-        });
-    }
-    if (complexity === 'high' && primaryIntent !== 'content_generation') {
+    if (primaryIntent === 'recruitment' && (entities.some(e => e.type === 'skill') ||
+        complexity === 'high')) {
         secondaryAgents.push({
             type: 'content_agent',
-            priority: 4,
-            reasoning: 'Complex task requires documentation and communication support',
-            capabilities: ['documentation', 'summary_generation'],
+            priority: 2,
+            reasoning: 'Content generation needed for recruitment documentation',
+            capabilities: ['text_generation', 'documentation'],
             maturityLevel: 'M4',
-            estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.3
+            estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.6
+        });
+    }
+    if (primaryIntent === 'content_generation' && (entities.some(e => e.type === 'person') ||
+        entities.some(e => e.type === 'skill'))) {
+        secondaryAgents.push({
+            type: 'recruitment_agent',
+            priority: 2,
+            reasoning: 'Recruitment context detected in content request',
+            capabilities: ['candidate_analysis', 'skill_assessment'],
+            maturityLevel: 'M2',
+            estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.5
         });
     }
     return secondaryAgents;
 }
 function selectFallbackAgents(selectedAgents) {
-    const fallbacks = [{
-            type: 'general_assistant',
-            priority: 99,
-            reasoning: 'Ultimate fallback for any processing failures',
-            capabilities: ['general_query_processing', 'error_handling'],
-            maturityLevel: 'M2',
-            estimatedProcessingTime: 2000
-        }];
+    const fallbacks = [];
     selectedAgents.forEach(agent => {
         if (agent.type === 'recruitment_agent') {
             fallbacks.push({
                 type: 'content_agent',
                 priority: 10,
-                reasoning: 'Fallback for recruitment agent using content generation',
+                reasoning: 'Content agent fallback for recruitment tasks',
                 capabilities: ['text_processing', 'data_analysis'],
                 maturityLevel: 'M4',
                 estimatedProcessingTime: 4000
             });
         }
+        else if (agent.type === 'content_agent') {
+            fallbacks.push({
+                type: 'recruitment_agent',
+                priority: 10,
+                reasoning: 'Recruitment agent fallback for content tasks',
+                capabilities: ['general_processing', 'data_analysis'],
+                maturityLevel: 'M2',
+                estimatedProcessingTime: 3000
+            });
+        }
     });
+    if (fallbacks.length === 0) {
+        fallbacks.push({
+            type: 'content_agent',
+            priority: 99,
+            reasoning: 'Content agent as ultimate fallback for general assistance',
+            capabilities: ['general_query_processing', 'text_generation'],
+            maturityLevel: 'M4',
+            estimatedProcessingTime: 2000
+        });
+    }
     return fallbacks;
 }
 function calculateRoutingConfidence(nlpAnalysis, selectedAgents) {
@@ -192,10 +190,10 @@ function estimateProcessingTime(selectedAgents, complexity) {
     return Math.round(selectedAgents.length > 1 ? avgTime : maxTime);
 }
 function requiresSequentialProcessing(intentCategory) {
-    return ['project_management', 'treasury_control'].includes(intentCategory);
+    return false;
 }
 function isSingleDomainTask(intentCategory) {
-    return ['content_generation'].includes(intentCategory);
+    return ['content_generation', 'recruitment'].includes(intentCategory);
 }
 function getBaseProcessingTime(complexity) {
     switch (complexity) {

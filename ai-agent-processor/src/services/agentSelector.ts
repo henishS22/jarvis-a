@@ -61,7 +61,7 @@ function getServicePreference(
     const hasCreativeContent = detectCreativeContent(query);
     const hasAnalyticalContent = detectAnalyticalContent(query);
 
-    // Service selection logic based on agent type and content analysis
+    // Service selection logic for two-agent system: content_agent and recruitment_agent
     const selectionRules: Array<{
       condition: boolean;
       service: 'openai' | 'anthropic';
@@ -69,16 +69,16 @@ function getServicePreference(
       reasoning: string;
       confidence: number;
     }> = [
-      // Financial and treasury operations prefer OpenAI for structured processing
+      // Recruitment agent prefers OpenAI for structured analysis and data processing
       {
-        condition: agentType === 'treasury_agent' || hasFinancialContent,
+        condition: agentType === 'recruitment_agent',
         service: 'openai',
         model: 'gpt-4o',
-        reasoning: 'OpenAI excels at financial analysis and structured data processing',
+        reasoning: 'OpenAI provides excellent structured analysis for recruitment tasks',
         confidence: 0.85
       },
 
-      // Content generation often benefits from Anthropic's writing capabilities
+      // Content generation benefits from Anthropic's superior writing capabilities
       {
         condition: agentType === 'content_agent' || hasCreativeContent,
         service: 'anthropic',
@@ -87,40 +87,22 @@ function getServicePreference(
         confidence: 0.80
       },
 
-      // Complex analytical tasks favor Anthropic for reasoning
+      // For complex analytical content, prefer Anthropic
       {
-        condition: agentType === 'project_agent' || (hasAnalyticalContent && isComplexQuery),
+        condition: hasAnalyticalContent && isComplexQuery,
         service: 'anthropic',
         model: 'claude-sonnet-4-20250514',
         reasoning: 'Anthropic provides superior reasoning for complex analytical tasks',
         confidence: 0.75
       },
 
-      // Recruitment tasks benefit from OpenAI's structured output
+      // Default content agent to Anthropic for writing quality
       {
-        condition: agentType === 'recruitment_agent',
-        service: 'openai',
-        model: 'gpt-4o',
-        reasoning: 'OpenAI provides excellent structured analysis for recruitment tasks',
-        confidence: 0.70
-      },
-
-      // CRM tasks can use either, but OpenAI for data processing
-      {
-        condition: agentType === 'crm_agent',
-        service: 'openai',
-        model: 'gpt-4o',
-        reasoning: 'OpenAI handles customer data analysis and lead scoring effectively',
-        confidence: 0.65
-      },
-
-      // General assistant prefers available service with highest capability
-      {
-        condition: agentType === 'general_assistant',
+        condition: agentType === 'content_agent',
         service: 'anthropic',
         model: 'claude-sonnet-4-20250514',
-        reasoning: 'Anthropic provides balanced performance for general assistance tasks',
-        confidence: 0.60
+        reasoning: 'Anthropic delivers higher quality content generation',
+        confidence: 0.70
       }
     ];
 

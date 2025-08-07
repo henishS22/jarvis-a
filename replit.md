@@ -2,12 +2,28 @@
 
 The JARVIS AI system is a scalable microservices architecture designed for enterprise-level multi-agent AI orchestration using function-based programming paradigm. It implements a two-service architecture where the JARVIS Orchestrator Service handles query analysis, intent recognition, and task routing, while the AI Agent Processor Service manages AI model integrations and agent-specific processing. The system supports six specialized agents (Recruitment, CRM, Content, Project, Treasury, and General Assistant) with dual AI provider support for OpenAI GPT-4o and Anthropic Claude Sonnet 4.
 
-## Recent Changes (August 6, 2025)
-- Successfully converted entire system from class-based to function-based architecture
-- All services now use pure functions instead of classes: NLP analysis, task routing, agent communication, and AI processing
-- Maintained full functionality while improving code maintainability and testability
-- Verified multi-agent parallel processing with comprehensive end-to-end testing
-- All 6 specialized agents operational with function-based implementation
+## Recent Changes (August 7, 2025)
+- **AI-Powered NLP Integration**: Integrated OpenAI GPT-4o for intelligent analysis of user queries
+  - extractIntent: AI classifies queries into recruitment vs content_generation categories
+  - extractEntities: AI extracts people, skills, companies, dates, currencies, etc.
+  - assessComplexity: AI determines query complexity (low/medium/high)
+  - determinePriority: AI sets priority based on business impact and urgency
+  - calculateConfidence: AI computes overall analysis confidence
+  - detectLanguage: AI detects user language (English, Spanish, French, etc.)
+  - analyzeSentiment: AI analyzes emotional tone (positive/neutral/negative)
+  - extractKeywords: AI identifies key terms and concepts
+
+- **Simplified Two-Agent System**: Focused on business-critical agents only
+  - Content Generation Agent: Writing, marketing, documentation, creative content
+  - Recruitment Agent: Resume processing, candidate evaluation, interview questions
+  - Intelligent cross-agent fallbacks for enhanced reliability
+
+- **Smart AI Service Selection**: 
+  - Recruitment tasks use OpenAI GPT-4o for structured analysis
+  - Content tasks use Anthropic Claude Sonnet 4 for superior writing quality
+  - Graceful fallbacks when API quotas are exceeded
+
+- **Enhanced Error Handling**: Robust fallback mechanisms ensure system reliability even when AI services are unavailable
 
 # User Preferences
 
