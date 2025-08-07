@@ -16,17 +16,17 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.path}`, {
-    userAgent: req.get('User-Agent'),
-    ip: req.ip,
-    timestamp: new Date().toISOString()
-  });
-  next();
+    logger.info(`${req.method} ${req.path}`, {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip,
+        timestamp: new Date().toISOString()
+    });
+    next();
 });
 
 // Main web interface
 app.get('/', (req, res) => {
-  res.send(`
+    res.send(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -543,12 +543,12 @@ app.get('/', (req, res) => {
 
 // Health check endpoint
 app.get('/api/v1/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    service: 'jarvis-orchestrator',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
+    res.json({
+        status: 'healthy',
+        service: 'jarvis-orchestrator',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+    });
 });
 
 // Main orchestration endpoint
@@ -556,25 +556,25 @@ app.post('/api/v1/orchestrate', orchestrate);
 
 // Error handling middleware
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error('Unhandled error:', error);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: 'An unexpected error occurred during request processing',
-    timestamp: new Date().toISOString()
-  });
+    logger.error('Unhandled error:', error);
+    res.status(500).json({
+        error: 'Internal Server Error',
+        message: 'An unexpected error occurred during request processing',
+        timestamp: new Date().toISOString()
+    });
 });
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: `Route ${req.method} ${req.originalUrl} not found`,
-    timestamp: new Date().toISOString()
-  });
+    res.status(404).json({
+        error: 'Not Found',
+        message: `Route ${req.method} ${req.originalUrl} not found`,
+        timestamp: new Date().toISOString()
+    });
 });
 
 app.listen(Number(PORT), '0.0.0.0', () => {
-  logger.info(`JARVIS Orchestrator Service running on port ${PORT}`);
+    logger.info(`JARVIS Orchestrator Service running on port ${PORT}`);
 });
 
 export default app;
