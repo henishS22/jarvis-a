@@ -3,7 +3,7 @@ import { logger } from '../utils/logger';
 import { NLPAnalysis, QueryIntent, EntityExtraction } from '../types';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: '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' });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || '' });
 
 /**
  * Performs comprehensive NLP analysis on user queries
