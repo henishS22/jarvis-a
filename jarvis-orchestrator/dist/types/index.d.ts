@@ -11,10 +11,8 @@ export interface OrchestrationResponse {
         nlpAnalysis: NLPAnalysis;
         routingDecision: {
             strategy: string;
-            confidence: number;
             selectedAgents: Array<{
                 type: string;
-                priority: number;
                 reasoning: string;
             }>;
         };
@@ -26,8 +24,6 @@ export interface TaskContext {
     userId?: string;
     sessionId?: string;
     source?: 'web' | 'mobile' | 'api' | 'voice';
-    language?: 'en' | 'fr';
-    priority?: 'low' | 'medium' | 'high' | 'urgent';
     metadata?: Record<string, any>;
 }
 export interface UserPreferences {
@@ -39,43 +35,31 @@ export interface UserPreferences {
 export interface NLPAnalysis {
     intent: QueryIntent;
     entities: EntityExtraction[];
-    complexity: 'low' | 'medium' | 'high';
-    priority: 'low' | 'medium' | 'high' | 'urgent';
-    confidence: number;
-    language: string;
     sentiment: 'positive' | 'neutral' | 'negative';
-    keywords: string[];
     timestamp: string;
 }
 export interface QueryIntent {
-    category: 'recruitment' | 'crm' | 'content_generation' | 'project_management' | 'treasury_control' | 'general';
+    category: 'recruitment' | 'content_generation';
     action: string;
-    confidence: number;
     subcategory: string;
 }
 export interface EntityExtraction {
     type: 'email' | 'phone' | 'date' | 'currency' | 'person' | 'organization' | 'location';
     value: string;
-    confidence: number;
     startIndex: number;
     endIndex: number;
 }
 export interface RoutingDecision {
-    strategy: 'single' | 'parallel' | 'sequential' | 'hybrid';
+    strategy: 'single' | 'parallel';
     selectedAgents: AgentSelection[];
-    confidence: number;
     reasoning: string;
     fallbackAgents: AgentSelection[];
-    estimatedProcessingTime: number;
     timestamp: string;
 }
 export interface AgentSelection {
     type: string;
-    priority: number;
     reasoning: string;
     capabilities: string[];
-    maturityLevel: 'M1' | 'M2' | 'M3' | 'M4' | 'M5';
-    estimatedProcessingTime: number;
 }
 export interface AgentResult {
     agentType: string;
@@ -83,9 +67,7 @@ export interface AgentResult {
     data: any;
     error: AgentError | null;
     metadata: {
-        priority: number;
         capabilities: string[];
-        maturityLevel: string;
         timestamp: string;
         aiModel?: string;
         tokensUsed?: number;

@@ -96,8 +96,7 @@ async function processWithAgent(req, res) {
                 agentType: agentRequest.agentType,
                 serviceSelection: {
                     service: serviceSelection.service,
-                    reasoning: serviceSelection.reasoning,
-                    confidence: serviceSelection.confidence
+                    reasoning: serviceSelection.reasoning
                 }
             }
         };

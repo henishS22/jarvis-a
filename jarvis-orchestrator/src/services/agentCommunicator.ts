@@ -22,8 +22,8 @@ export async function processWithAgents(
 
     const results: AgentResult[] = [];
 
-    // Sort agents by priority
-    const sortedAgents = [...selectedAgents].sort((a, b) => a.priority - b.priority);
+    // Process agents without sorting (priority is eliminated)
+    const sortedAgents = [...selectedAgents];
 
     // Process agents based on routing strategy
     for (const agent of sortedAgents) {
@@ -64,9 +64,7 @@ export async function processWithAgents(
             details: errorDetails
           },
           metadata: {
-            priority: agent.priority,
             capabilities: agent.capabilities,
-            maturityLevel: agent.maturityLevel,
             timestamp: new Date().toISOString()
           },
           processingTime: 0
@@ -111,7 +109,6 @@ async function callAgent(
     query: request.query,
     context: request.context,
     capabilities: agent.capabilities,
-    maturityLevel: agent.maturityLevel,
     requestId
   };
 
@@ -135,9 +132,7 @@ async function callAgent(
       data: response.data.result,
       error: null,
       metadata: {
-        priority: agent.priority,
         capabilities: agent.capabilities,
-        maturityLevel: agent.maturityLevel,
         timestamp: new Date().toISOString(),
         aiModel: response.data.metadata?.aiModel,
         tokensUsed: response.data.metadata?.tokensUsed
@@ -169,12 +164,9 @@ async function processFallback(request: OrchestrationRequest, requestId: string)
     logger.info('Attempting fallback processing', { requestId });
 
     const fallbackAgent: AgentSelection = {
-      type: 'general_assistant',
-      priority: 99,
+      type: 'content_agent',
       reasoning: 'Fallback processing after all agents failed',
-      capabilities: ['general_query_processing'],
-      maturityLevel: 'M2',
-      estimatedProcessingTime: 2000
+      capabilities: ['general_query_processing']
     };
 
     return await callAgent(fallbackAgent, request, requestId);

@@ -3,7 +3,6 @@ export interface AgentProcessingRequest {
     query: string;
     context?: TaskContext;
     capabilities: string[];
-    maturityLevel: string;
     requestId: string;
 }
 export interface AgentProcessingResponse {
@@ -19,7 +18,6 @@ export interface AgentProcessingResponse {
         serviceSelection?: {
             service: string;
             reasoning: string;
-            confidence: number;
         };
     };
 }
@@ -27,8 +25,6 @@ export interface TaskContext {
     userId?: string;
     sessionId?: string;
     source?: 'web' | 'mobile' | 'api' | 'voice';
-    language?: 'en' | 'fr';
-    priority?: 'low' | 'medium' | 'high' | 'urgent';
     metadata?: Record<string, any>;
 }
 export interface AgentError {
@@ -47,18 +43,13 @@ export interface ServiceAvailability {
 export interface AgentCapability {
     name: string;
     description: string;
-    maturityLevel: 'M1' | 'M2' | 'M3' | 'M4' | 'M5';
     supportedBy: ('openai' | 'anthropic')[];
 }
 export interface ServiceSelection {
     service: 'openai' | 'anthropic';
     model: string;
     reasoning: string;
-    confidence: number;
 }
-export type AgentType = 'recruitment_agent' | 'crm_agent' | 'content_agent' | 'project_agent' | 'treasury_agent' | 'general_assistant';
-export type MaturityLevel = 'M1' | 'M2' | 'M3' | 'M4' | 'M5';
-export type Priority = 'low' | 'medium' | 'high' | 'urgent';
-export type Language = 'en' | 'fr';
+export type AgentType = 'recruitment_agent' | 'content_agent';
 export type Source = 'web' | 'mobile' | 'api' | 'voice';
 //# sourceMappingURL=index.d.ts.map

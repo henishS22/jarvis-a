@@ -4,7 +4,6 @@ export interface ServiceSelection {
   service: 'openai' | 'anthropic';
   model: string;
   reasoning: string;
-  confidence: number;
 }
 
 /**
@@ -67,15 +66,13 @@ function getServicePreference(
       service: 'openai' | 'anthropic';
       model: string;
       reasoning: string;
-      confidence: number;
     }> = [
       // Recruitment agent prefers OpenAI for structured analysis and data processing
       {
         condition: agentType === 'recruitment_agent',
         service: 'openai',
         model: 'gpt-4o',
-        reasoning: 'OpenAI provides excellent structured analysis for recruitment tasks',
-        confidence: 0.85
+        reasoning: 'OpenAI provides excellent structured analysis for recruitment tasks'
       },
 
       // Content generation benefits from Anthropic's superior writing capabilities
@@ -83,8 +80,7 @@ function getServicePreference(
         condition: agentType === 'content_agent' || hasCreativeContent,
         service: 'anthropic',
         model: 'claude-sonnet-4-20250514',
-        reasoning: 'Anthropic excels at creative content generation and writing tasks',
-        confidence: 0.80
+        reasoning: 'Anthropic excels at creative content generation and writing tasks'
       },
 
       // For complex analytical content, prefer Anthropic
@@ -92,8 +88,7 @@ function getServicePreference(
         condition: hasAnalyticalContent && isComplexQuery,
         service: 'anthropic',
         model: 'claude-sonnet-4-20250514',
-        reasoning: 'Anthropic provides superior reasoning for complex analytical tasks',
-        confidence: 0.75
+        reasoning: 'Anthropic provides superior reasoning for complex analytical tasks'
       },
 
       // Default content agent to Anthropic for writing quality
@@ -101,8 +96,7 @@ function getServicePreference(
         condition: agentType === 'content_agent',
         service: 'anthropic',
         model: 'claude-sonnet-4-20250514',
-        reasoning: 'Anthropic delivers higher quality content generation',
-        confidence: 0.70
+        reasoning: 'Anthropic delivers higher quality content generation'
       }
     ];
 
@@ -112,8 +106,7 @@ function getServicePreference(
         return {
           service: rule.service,
           model: rule.model,
-          reasoning: rule.reasoning,
-          confidence: rule.confidence
+          reasoning: rule.reasoning
         };
       }
     }
@@ -123,8 +116,7 @@ function getServicePreference(
       return {
         service: 'openai',
         model: 'gpt-4o',
-        reasoning: 'Fallback to OpenAI as primary available service',
-        confidence: 0.50
+        reasoning: 'Fallback to OpenAI as primary available service'
       };
     }
 
@@ -132,8 +124,7 @@ function getServicePreference(
       return {
         service: 'anthropic',
         model: 'claude-sonnet-4-20250514',
-        reasoning: 'Fallback to Anthropic as only available service',
-        confidence: 0.50
+        reasoning: 'Fallback to Anthropic as only available service'
       };
     }
 

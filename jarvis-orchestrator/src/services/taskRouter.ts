@@ -7,8 +7,7 @@ import { NLPAnalysis, RoutingDecision, AgentSelection, TaskContext } from '../ty
 export async function routeTask(nlpAnalysis: NLPAnalysis, context?: TaskContext): Promise<RoutingDecision> {
   try {
     logger.info('Starting task routing', { 
-      intent: nlpAnalysis.intent.category,
-      complexity: nlpAnalysis.complexity 
+      intent: nlpAnalysis.intent.category
     });
 
     // Determine routing strategy
@@ -16,24 +15,18 @@ export async function routeTask(nlpAnalysis: NLPAnalysis, context?: TaskContext)
     
     // Select appropriate agents
     const selectedAgents = await selectAgents(nlpAnalysis, strategy, context);
-    
-    // Calculate overall confidence
-    const confidence = calculateRoutingConfidence(nlpAnalysis, selectedAgents);
 
     const routingDecision: RoutingDecision = {
       strategy,
       selectedAgents,
-      confidence,
       reasoning: generateRoutingReasoning(nlpAnalysis, selectedAgents),
       fallbackAgents: selectFallbackAgents(selectedAgents),
-      estimatedProcessingTime: estimateProcessingTime(selectedAgents, nlpAnalysis.complexity),
       timestamp: new Date().toISOString()
     };
 
     logger.info('Task routing completed', {
       strategy: routingDecision.strategy,
-      agentCount: selectedAgents.length,
-      confidence: confidence
+      agentCount: selectedAgents.length
     });
 
     return routingDecision;
@@ -45,21 +38,11 @@ export async function routeTask(nlpAnalysis: NLPAnalysis, context?: TaskContext)
   }
 }
 
-function determineRoutingStrategy(nlpAnalysis: NLPAnalysis, context?: TaskContext): 'single' | 'parallel' | 'sequential' | 'hybrid' {
-  const { intent, complexity, priority } = nlpAnalysis;
+function determineRoutingStrategy(nlpAnalysis: NLPAnalysis, context?: TaskContext): 'single' | 'parallel' {
+  const { intent } = nlpAnalysis;
 
-  // High-priority or urgent tasks prefer parallel processing
-  if (priority === 'urgent' || priority === 'high') {
-    return complexity === 'high' ? 'hybrid' : 'parallel';
-  }
-
-  // Complex tasks that require multiple steps use sequential
-  if (complexity === 'high' && requiresSequentialProcessing(intent.category)) {
-    return 'sequential';
-  }
-
-  // Simple, single-domain tasks use single agent
-  if (complexity === 'low' && isSingleDomainTask(intent.category)) {
+  // Single-domain tasks use single agent
+  if (isSingleDomainTask(intent.category)) {
     return 'single';
   }
 
@@ -68,46 +51,41 @@ function determineRoutingStrategy(nlpAnalysis: NLPAnalysis, context?: TaskContex
 }
 
 async function selectAgents(nlpAnalysis: NLPAnalysis, strategy: string, context?: TaskContext): Promise<AgentSelection[]> {
-  const { intent, entities, complexity } = nlpAnalysis;
+  const { intent, entities } = nlpAnalysis;
   const selectedAgents: AgentSelection[] = [];
 
   // Primary agent selection based on intent
-  const primaryAgent = selectPrimaryAgent(intent.category, complexity);
+  const primaryAgent = selectPrimaryAgent(intent.category);
   if (primaryAgent) {
     selectedAgents.push(primaryAgent);
   }
 
-  // Secondary agents based on entities and complexity
-  const secondaryAgents = await selectSecondaryAgents(entities, complexity, intent.category);
+  // Secondary agents based on entities
+  const secondaryAgents = await selectSecondaryAgents(entities, intent.category);
   selectedAgents.push(...secondaryAgents);
 
   // Ensure we have at least one agent - default to content agent
   if (selectedAgents.length === 0) {
     selectedAgents.push({
       type: 'content_agent',
-      priority: 1,
       reasoning: 'Default to content agent for general assistance',
-      capabilities: ['text_generation', 'general_query_processing'],
-      maturityLevel: 'M4',
-      estimatedProcessingTime: 3000
+      capabilities: ['text_generation', 'general_query_processing']
     });
   }
 
   return selectedAgents;
 }
 
-function selectPrimaryAgent(intentCategory: string, complexity: string): AgentSelection | null {
+function selectPrimaryAgent(intentCategory: string): AgentSelection | null {
     // Simplified agent mapping for two-agent system
     const agentMap: Record<string, Partial<AgentSelection>> = {
       recruitment: {
         type: 'recruitment_agent',
-        capabilities: ['resume_processing', 'candidate_scoring', 'interview_scheduling'],
-        maturityLevel: 'M2'
+        capabilities: ['resume_processing', 'candidate_scoring', 'interview_scheduling']
       },
       content_generation: {
         type: 'content_agent',
-        capabilities: ['text_generation', 'content_optimization', 'multi_language'],
-        maturityLevel: 'M4'
+        capabilities: ['text_generation', 'content_optimization', 'multi_language']
       }
     };
 
@@ -116,40 +94,28 @@ function selectPrimaryAgent(intentCategory: string, complexity: string): AgentSe
       // Default to content agent for unrecognized intents
       return {
         type: 'content_agent',
-        priority: 1,
         reasoning: `Fallback to content agent for general assistance`,
-        capabilities: ['text_generation', 'content_optimization', 'multi_language'],
-        maturityLevel: 'M4',
-        estimatedProcessingTime: getBaseProcessingTime(complexity)
+        capabilities: ['text_generation', 'content_optimization', 'multi_language']
       };
     }
 
     return {
       type: agentConfig.type!,
-      priority: 1,
       reasoning: `Primary agent for ${intentCategory} tasks`,
-      capabilities: agentConfig.capabilities!,
-      maturityLevel: agentConfig.maturityLevel!,
-      estimatedProcessingTime: getBaseProcessingTime(complexity)
+      capabilities: agentConfig.capabilities!
     };
 }
 
-async function selectSecondaryAgents(entities: any[], complexity: string, primaryIntent: string): Promise<AgentSelection[]> {
+async function selectSecondaryAgents(entities: any[], primaryIntent: string): Promise<AgentSelection[]> {
     const secondaryAgents: AgentSelection[] = [];
 
     // Simplified logic for two-agent system
     // If primary is recruitment but we detect content needs, add content agent
-    if (primaryIntent === 'recruitment' && (
-        entities.some(e => e.type === 'skill') || 
-        complexity === 'high'
-      )) {
+    if (primaryIntent === 'recruitment' && entities.some(e => e.type === 'skill')) {
       secondaryAgents.push({
         type: 'content_agent',
-        priority: 2,
         reasoning: 'Content generation needed for recruitment documentation',
-        capabilities: ['text_generation', 'documentation'],
-        maturityLevel: 'M4',
-        estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.6
+        capabilities: ['text_generation', 'documentation']
       });
     }
 
@@ -160,11 +126,8 @@ async function selectSecondaryAgents(entities: any[], complexity: string, primar
       )) {
       secondaryAgents.push({
         type: 'recruitment_agent',
-        priority: 2,
         reasoning: 'Recruitment context detected in content request',
-        capabilities: ['candidate_analysis', 'skill_assessment'],
-        maturityLevel: 'M2',
-        estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.5
+        capabilities: ['candidate_analysis', 'skill_assessment']
       });
     }
 
@@ -179,20 +142,14 @@ function selectFallbackAgents(selectedAgents: AgentSelection[]): AgentSelection[
       if (agent.type === 'recruitment_agent') {
         fallbacks.push({
           type: 'content_agent',
-          priority: 10,
           reasoning: 'Content agent fallback for recruitment tasks',
-          capabilities: ['text_processing', 'data_analysis'],
-          maturityLevel: 'M4',
-          estimatedProcessingTime: 4000
+          capabilities: ['text_processing', 'data_analysis']
         });
       } else if (agent.type === 'content_agent') {
         fallbacks.push({
           type: 'recruitment_agent',
-          priority: 10,
           reasoning: 'Recruitment agent fallback for content tasks',
-          capabilities: ['general_processing', 'data_analysis'],
-          maturityLevel: 'M2',
-          estimatedProcessingTime: 3000
+          capabilities: ['general_processing', 'data_analysis']
         });
       }
     });
@@ -201,36 +158,19 @@ function selectFallbackAgents(selectedAgents: AgentSelection[]): AgentSelection[
     if (fallbacks.length === 0) {
       fallbacks.push({
         type: 'content_agent',
-        priority: 99,
         reasoning: 'Content agent as ultimate fallback for general assistance',
-        capabilities: ['general_query_processing', 'text_generation'],
-        maturityLevel: 'M4',
-        estimatedProcessingTime: 2000
+        capabilities: ['general_query_processing', 'text_generation']
       });
     }
 
     return fallbacks;
 }
 
-function calculateRoutingConfidence(nlpAnalysis: NLPAnalysis, selectedAgents: AgentSelection[]): number {
-    let confidence = nlpAnalysis.confidence;
-
-    // Boost confidence if we have a direct match
-    if (selectedAgents.length > 0 && selectedAgents[0].priority === 1) {
-      confidence += 0.1;
-    }
-
-    // Reduce confidence if we're using many fallback agents
-    const fallbackCount = selectedAgents.filter(a => a.priority > 5).length;
-    confidence -= fallbackCount * 0.05;
-
-    return Math.max(0.1, Math.min(0.95, confidence));
-}
+// Remove this function completely as confidence is eliminated
 
 function generateRoutingReasoning(nlpAnalysis: NLPAnalysis, selectedAgents: AgentSelection[]): string {
     const reasons = [
-      `Intent "${nlpAnalysis.intent.category}" detected with ${(nlpAnalysis.confidence * 100).toFixed(0)}% confidence`,
-      `Task complexity assessed as ${nlpAnalysis.complexity}`,
+      `Intent "${nlpAnalysis.intent.category}" detected`,
       `Selected ${selectedAgents.length} agent(s) for processing`
     ];
 
@@ -241,27 +181,13 @@ function generateRoutingReasoning(nlpAnalysis: NLPAnalysis, selectedAgents: Agen
     return reasons.join('. ');
 }
 
-function estimateProcessingTime(selectedAgents: AgentSelection[], complexity: string): number {
-    if (selectedAgents.length === 0) return 1000;
+// Remove this function completely as estimatedProcessingTime is eliminated
 
-    const maxTime = Math.max(...selectedAgents.map(a => a.estimatedProcessingTime));
-    const avgTime = selectedAgents.reduce((sum, a) => sum + a.estimatedProcessingTime, 0) / selectedAgents.length;
-
-    // Return max time for sequential, average for parallel
-    return Math.round(selectedAgents.length > 1 ? avgTime : maxTime);
-}
-
-function requiresSequentialProcessing(intentCategory: string): boolean {
-    // Simplified for two-agent system - most tasks can be parallel
-    return false; // Both recruitment and content can work in parallel
-}
+// Remove this function completely as sequential processing is eliminated
 
 function isSingleDomainTask(intentCategory: string): boolean {
     // Both agent types can handle single-domain tasks effectively
     return ['content_generation', 'recruitment'].includes(intentCategory);
 }
 
-function getBaseProcessingTime(complexity: string): number {
-    // Simplified - always use medium complexity processing time
-    return 3000;
-}
+// Remove this function completely as processing time estimation is eliminated
