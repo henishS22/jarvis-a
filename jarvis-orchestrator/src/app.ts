@@ -16,17 +16,17 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.path}`, {
-    userAgent: req.get('User-Agent'),
-    ip: req.ip,
-    timestamp: new Date().toISOString()
-  });
-  next();
+    logger.info(`${req.method} ${req.path}`, {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip,
+        timestamp: new Date().toISOString()
+    });
+    next();
 });
 
 // Main web interface
 app.get('/', (req, res) => {
-  res.send(`
+    res.send(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -67,20 +67,8 @@ app.get('/', (req, res) => {
                 <p>Resume processing, candidate evaluation, interview scheduling, and talent acquisition optimization.</p>
             </div>
             <div class="agent-card">
-                <h3>CRM Agent</h3>
-                <p>Lead management, sales optimization, customer insights, and relationship management.</p>
-            </div>
-            <div class="agent-card">
                 <h3>Content Agent</h3>
                 <p>Text generation, content optimization, creative writing, and multi-language support.</p>
-            </div>
-            <div class="agent-card">
-                <h3>Project Agent</h3>
-                <p>Task scheduling, resource allocation, progress tracking, and project management.</p>
-            </div>
-            <div class="agent-card">
-                <h3>Treasury Agent</h3>
-                <p>Payment processing, financial analysis, compliance checks, and accounting tasks.</p>
             </div>
             <div class="agent-card">
                 <h3>General Assistant</h3>
@@ -90,24 +78,9 @@ app.get('/', (req, res) => {
         
         <div class="demo-section">
             <h3>Try the JARVIS System</h3>
-            <textarea class="query-input" id="queryInput" placeholder="Example: 'I need help analyzing a resume for a software engineering position' or 'Generate a marketing blog post about AI' or 'Help me manage leads in my CRM system'"></textarea>
+            <textarea class="query-input" id="queryInput" placeholder="Example: 'I need help analyzing a resume for a software engineering position' or 'Generate a marketing blog post about AI'"></textarea>
             <button class="query-button" onclick="sendQuery()">Send Query to JARVIS</button>
             <div class="response-area" id="responseArea">Response will appear here...</div>
-        </div>
-        
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number">6</div>
-                <div class="stat-label">Specialized Agents</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">2</div>
-                <div class="stat-label">AI Providers</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">100%</div>
-                <div class="stat-label">Operational</div>
-            </div>
         </div>
     </div>
     
@@ -153,12 +126,12 @@ app.get('/', (req, res) => {
 
 // Health check endpoint
 app.get('/api/v1/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    service: 'jarvis-orchestrator',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
+    res.json({
+        status: 'healthy',
+        service: 'jarvis-orchestrator',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+    });
 });
 
 // Main orchestration endpoint
@@ -166,25 +139,25 @@ app.post('/api/v1/orchestrate', orchestrate);
 
 // Error handling middleware
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error('Unhandled error:', error);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: 'An unexpected error occurred during request processing',
-    timestamp: new Date().toISOString()
-  });
+    logger.error('Unhandled error:', error);
+    res.status(500).json({
+        error: 'Internal Server Error',
+        message: 'An unexpected error occurred during request processing',
+        timestamp: new Date().toISOString()
+    });
 });
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: `Route ${req.method} ${req.originalUrl} not found`,
-    timestamp: new Date().toISOString()
-  });
+    res.status(404).json({
+        error: 'Not Found',
+        message: `Route ${req.method} ${req.originalUrl} not found`,
+        timestamp: new Date().toISOString()
+    });
 });
 
 app.listen(Number(PORT), '0.0.0.0', () => {
-  logger.info(`JARVIS Orchestrator Service running on port ${PORT}`);
+    logger.info(`JARVIS Orchestrator Service running on port ${PORT}`);
 });
 
 export default app;
