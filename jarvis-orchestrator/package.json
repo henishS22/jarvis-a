@@ -10,7 +10,12 @@
     "watch": "tsc --watch",
     "clean": "rm -rf dist"
   },
-  "keywords": ["ai", "orchestrator", "microservices", "jarvis"],
+  "keywords": [
+    "ai",
+    "orchestrator",
+    "microservices",
+    "jarvis"
+  ],
   "author": "JARVIS AI System",
   "license": "MIT",
   "dependencies": {
@@ -22,6 +27,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "joi": "^17.13.1",
+    "openai": "^5.12.0",
     "winston": "^3.13.0"
   },
   "devDependencies": {
