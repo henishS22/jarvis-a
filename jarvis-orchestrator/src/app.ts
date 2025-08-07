@@ -32,118 +32,506 @@ app.get('/', (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS Multi-AI Agent System</title>
+    <title>JARVIS AI</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
-        .container { max-width: 900px; margin: 0 auto; background: rgba(255,255,255,0.95); border-radius: 20px; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; text-align: center; margin-bottom: 2rem; font-size: 2.5rem; }
-        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 3rem; font-size: 1.2rem; }
-        .agent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
-        .agent-card { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-left: 5px solid #3498db; transition: transform 0.3s ease; }
-        .agent-card:hover { transform: translateY(-5px); }
-        .agent-card h3 { color: #2c3e50; margin-bottom: 0.5rem; }
-        .agent-card p { color: #7f8c8d; font-size: 0.9rem; line-height: 1.4; }
-        .demo-section { background: #f8f9fa; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; }
-        .demo-section h3 { color: #2c3e50; margin-bottom: 1rem; }
-        .query-input { width: 100%; padding: 1rem; border: 2px solid #e1e8ed; border-radius: 10px; font-size: 1rem; margin-bottom: 1rem; }
-        .query-button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 1rem 2rem; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: transform 0.3s ease; }
-        .query-button:hover { transform: scale(1.05); }
-        .response-area { background: #2c3e50; color: #ecf0f1; padding: 1rem; border-radius: 10px; margin-top: 1rem; font-family: 'Courier New', monospace; font-size: 0.9rem; white-space: pre-wrap; min-height: 200px; overflow-y: auto; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 2rem; }
-        .stat-card { background: white; padding: 1rem; border-radius: 10px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .stat-number { font-size: 1.8rem; font-weight: bold; color: #3498db; }
-        .stat-label { color: #7f8c8d; margin-top: 0.5rem; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #0f0f23;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 768px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .header {
+            padding: 16px 20px;
+            background: rgba(15, 15, 35, 0.95);
+            border-bottom: 1px solid #2a2a3a;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px;
+            scroll-behavior: smooth;
+        }
+
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 32px;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-subtitle {
+            font-size: 18px;
+            color: #a0a0a0;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .agent-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .agent-pill {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .message {
+            margin: 24px 0;
+            display: flex;
+            gap: 12px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .message.user .message-avatar {
+            background: #10a37f;
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message-content {
+            flex: 1;
+            max-width: 70%;
+        }
+
+        .message.user .message-content {
+            background: #2f2f2f;
+            padding: 12px 16px;
+            border-radius: 18px 18px 6px 18px;
+            color: #ffffff;
+        }
+
+        .message.assistant .message-content {
+            background: transparent;
+            padding: 0;
+            line-height: 1.7;
+            color: #e5e5e5;
+        }
+
+        .thinking {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #a0a0a0;
+            font-style: italic;
+            padding: 8px 0;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .input-container {
+            padding: 20px;
+            background: rgba(15, 15, 35, 0.95);
+            border-top: 1px solid #2a2a3a;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-wrapper {
+            position: relative;
+            max-width: 100%;
+        }
+
+        .input-field {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 24px;
+            padding: 16px 60px 16px 20px;
+            font-size: 16px;
+            color: #ffffff;
+            resize: none;
+            min-height: 56px;
+            max-height: 200px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-field:focus {
+            border-color: #667eea;
+        }
+
+        .input-field::placeholder {
+            color: #888;
+        }
+
+        .send-button {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+            opacity: 0.7;
+        }
+
+        .send-button:hover {
+            transform: translateY(-50%) scale(1.1);
+            opacity: 1;
+        }
+
+        .send-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: translateY(-50%) scale(1);
+        }
+
+        .metadata {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #333;
+        }
+
+        /* Scrollbar styling */
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #404040;
+            border-radius: 3px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        @media (max-width: 640px) {
+            .chat-container {
+                height: 100vh;
+            }
+            
+            .header {
+                padding: 12px 16px;
+            }
+            
+            .messages-container {
+                padding: 0 16px;
+            }
+            
+            .input-container {
+                padding: 16px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>JARVIS Multi-AI Agent System</h1>
-        <div class="subtitle">Enterprise-level AI orchestration with specialized agents for different business functions</div>
+    <div class="chat-container">
+        <div class="header">
+            <h1>JARVIS AI</h1>
+        </div>
         
-        <div class="agent-grid">
-            <div class="agent-card">
-                <h3>Recruitment Agent</h3>
-                <p>Resume processing, candidate evaluation, interview scheduling, and talent acquisition optimization.</p>
-            </div>
-            <div class="agent-card">
-                <h3>CRM Agent</h3>
-                <p>Lead management, sales optimization, customer insights, and relationship management.</p>
-            </div>
-            <div class="agent-card">
-                <h3>Content Agent</h3>
-                <p>Text generation, content optimization, creative writing, and multi-language support.</p>
-            </div>
-            <div class="agent-card">
-                <h3>Project Agent</h3>
-                <p>Task scheduling, resource allocation, progress tracking, and project management.</p>
-            </div>
-            <div class="agent-card">
-                <h3>Treasury Agent</h3>
-                <p>Payment processing, financial analysis, compliance checks, and accounting tasks.</p>
-            </div>
-            <div class="agent-card">
-                <h3>General Assistant</h3>
-                <p>Fallback processing, general queries, basic NLP, and error handling.</p>
+        <div class="messages-container" id="messagesContainer">
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-icon">🤖</div>
+                <div class="welcome-title">Welcome to JARVIS</div>
+                <div class="welcome-subtitle">Your intelligent AI assistant with specialized agents for recruitment and content creation</div>
+                <div class="agent-pills">
+                    <div class="agent-pill">Recruitment Agent</div>
+                    <div class="agent-pill">Content Agent</div>
+                </div>
             </div>
         </div>
         
-        <div class="demo-section">
-            <h3>Try the JARVIS System</h3>
-            <textarea class="query-input" id="queryInput" placeholder="Example: 'I need help analyzing a resume for a software engineering position' or 'Generate a marketing blog post about AI' or 'Help me manage leads in my CRM system'"></textarea>
-            <button class="query-button" onclick="sendQuery()">Send Query to JARVIS</button>
-            <div class="response-area" id="responseArea">Response will appear here...</div>
-        </div>
-        
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number">6</div>
-                <div class="stat-label">Specialized Agents</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">2</div>
-                <div class="stat-label">AI Providers</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">100%</div>
-                <div class="stat-label">Operational</div>
+        <div class="input-container">
+            <div class="input-wrapper">
+                <textarea 
+                    class="input-field" 
+                    id="messageInput" 
+                    placeholder="Ask me anything about recruitment, content creation, or general questions..."
+                    rows="1"
+                ></textarea>
+                <button class="send-button" id="sendButton" onclick="sendMessage()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>
+                    </svg>
+                </button>
             </div>
         </div>
     </div>
-    
+
     <script>
-        async function sendQuery() {
-            const query = document.getElementById('queryInput').value;
-            const responseArea = document.getElementById('responseArea');
+        let isWaiting = false;
+
+        function hideWelcomeScreen() {
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
+        }
+
+        function addMessage(content, isUser = false, metadata = null) {
+            hideWelcomeScreen();
             
-            if (!query.trim()) {
-                responseArea.textContent = 'Please enter a query first.';
-                return;
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = \`message \${isUser ? 'user' : 'assistant'}\`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = isUser ? 'U' : 'J';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            if (isUser) {
+                contentDiv.textContent = content;
+            } else {
+                // Format assistant response
+                if (typeof content === 'object') {
+                    try {
+                        const result = content.results && content.results[0] ? content.results[0].data : 'Processing completed';
+                        contentDiv.innerHTML = \`
+                            <div style="margin-bottom: 12px;">\${typeof result === 'string' ? result : JSON.stringify(result, null, 2)}</div>
+                        \`;
+                        
+                        if (metadata || (content.metadata && content.metadata.nlpAnalysis)) {
+                            const meta = metadata || content.metadata;
+                            const metaDiv = document.createElement('div');
+                            metaDiv.className = 'metadata';
+                            metaDiv.innerHTML = \`
+                                <strong>Analysis:</strong> Intent: \${meta.nlpAnalysis?.intent || 'unknown'}, 
+                                Sentiment: \${meta.nlpAnalysis?.sentiment || 'neutral'} | 
+                                <strong>Agent:</strong> \${content.results?.[0]?.agentType || 'content_agent'} | 
+                                <strong>Model:</strong> \${content.results?.[0]?.metadata?.aiModel || 'claude-sonnet-4-20250514'}
+                            \`;
+                            contentDiv.appendChild(metaDiv);
+                        }
+                    } catch (e) {
+                        contentDiv.textContent = JSON.stringify(content, null, 2);
+                    }
+                } else {
+                    contentDiv.textContent = content;
+                }
             }
             
-            responseArea.textContent = 'Processing query with JARVIS...';
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showThinking() {
+            hideWelcomeScreen();
+            
+            const messagesContainer = document.getElementById('messagesContainer');
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'message assistant';
+            thinkingDiv.id = 'thinking-message';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = 'J';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content thinking';
+            contentDiv.innerHTML = \`
+                JARVIS is thinking
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            \`;
+            
+            thinkingDiv.appendChild(avatar);
+            thinkingDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(thinkingDiv);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function removeThinking() {
+            const thinkingMessage = document.getElementById('thinking-message');
+            if (thinkingMessage) {
+                thinkingMessage.remove();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const message = input.value.trim();
+            
+            if (!message || isWaiting) return;
+            
+            isWaiting = true;
+            sendButton.disabled = true;
+            
+            // Add user message
+            addMessage(message, true);
+            input.value = '';
+            
+            // Show thinking state
+            showThinking();
             
             try {
                 const response = await fetch('/api/v1/orchestrate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        query: query,
-                        context: { priority: 'medium', userId: 'web-user' }
+                        query: message,
+                        context: { userId: 'web-user', source: 'web' }
                     })
                 });
                 
                 const data = await response.json();
-                responseArea.textContent = JSON.stringify(data, null, 2);
+                
+                removeThinking();
+                
+                if (response.ok) {
+                    addMessage(data, false, data.metadata);
+                } else {
+                    addMessage('Sorry, I encountered an error processing your request. Please try again.', false);
+                }
+                
             } catch (error) {
-                responseArea.textContent = 'Error: ' + error.message;
+                removeThinking();
+                addMessage('Sorry, I encountered a network error. Please check your connection and try again.', false);
+                console.error('Error:', error);
             }
+            
+            isWaiting = false;
+            sendButton.disabled = false;
+            input.focus();
         }
-        
-        document.getElementById('queryInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && e.ctrlKey) {
-                sendQuery();
+
+        // Auto-resize textarea
+        document.getElementById('messageInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+
+        // Send on Enter (not Shift+Enter)
+        document.getElementById('messageInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
             }
+        });
+
+        // Focus input on load
+        window.addEventListener('load', function() {
+            document.getElementById('messageInput').focus();
         });
     </script>
 </body>
