@@ -3,15 +3,12 @@
 The JARVIS AI system is a scalable microservices architecture designed for enterprise-level multi-agent AI orchestration using function-based programming paradigm. It implements a two-service architecture where the JARVIS Orchestrator Service handles query analysis, intent recognition, and task routing, while the AI Agent Processor Service manages AI model integrations and agent-specific processing. The system supports six specialized agents (Recruitment, CRM, Content, Project, Treasury, and General Assistant) with dual AI provider support for OpenAI GPT-4o and Anthropic Claude Sonnet 4.
 
 ## Recent Changes (August 7, 2025)
-- **AI-Powered NLP Integration**: Integrated OpenAI GPT-4o for intelligent analysis of user queries
+- **Simplified AI-Powered NLP Integration**: Streamlined OpenAI GPT-4o integration for efficient query analysis
   - extractIntent: AI classifies queries into recruitment vs content_generation categories
   - extractEntities: AI extracts people, skills, companies, dates, currencies, etc.
-  - assessComplexity: AI determines query complexity (low/medium/high)
-  - determinePriority: AI sets priority based on business impact and urgency
-  - calculateConfidence: AI computes overall analysis confidence
-  - detectLanguage: AI detects user language (English, Spanish, French, etc.)
   - analyzeSentiment: AI analyzes emotional tone (positive/neutral/negative)
-  - extractKeywords: AI identifies key terms and concepts
+  - Removed unnecessary functions: assessComplexity, determinePriority, calculateConfidence, detectLanguage, extractKeywords
+  - Default values used for complexity (medium), priority (high for recruitment, medium for content), language (English)
 
 - **Simplified Two-Agent System**: Focused on business-critical agents only
   - Content Generation Agent: Writing, marketing, documentation, creative content

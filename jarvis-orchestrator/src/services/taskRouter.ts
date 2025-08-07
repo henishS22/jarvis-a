@@ -262,10 +262,6 @@ function isSingleDomainTask(intentCategory: string): boolean {
 }
 
 function getBaseProcessingTime(complexity: string): number {
-    switch (complexity) {
-      case 'low': return 1500;
-      case 'medium': return 3000;
-      case 'high': return 5000;
-      default: return 2000;
-    }
+    // Simplified - always use medium complexity processing time
+    return 3000;
 }

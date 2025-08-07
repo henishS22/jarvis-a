@@ -196,11 +196,6 @@ function isSingleDomainTask(intentCategory) {
     return ['content_generation', 'recruitment'].includes(intentCategory);
 }
 function getBaseProcessingTime(complexity) {
-    switch (complexity) {
-        case 'low': return 1500;
-        case 'medium': return 3000;
-        case 'high': return 5000;
-        default: return 2000;
-    }
+    return 3000;
 }
 //# sourceMappingURL=taskRouter.js.map
