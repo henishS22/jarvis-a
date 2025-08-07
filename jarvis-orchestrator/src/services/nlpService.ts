@@ -3,7 +3,7 @@ import { logger } from '../utils/logger';
 import { NLPAnalysis, QueryIntent, EntityExtraction } from '../types';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: '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' });
 
 /**
  * Performs comprehensive NLP analysis on user queries
@@ -15,10 +15,10 @@ export async function analyzeQuery(query: string): Promise<NLPAnalysis> {
 
     // Extract intent using AI
     const intent = await extractIntent(query);
-    
+
     // Extract entities and parameters
     const entities = await extractEntities(query);
-    
+
     const analysis: NLPAnalysis = {
       intent,
       entities,
@@ -65,7 +65,7 @@ For content_generation: focus on writing, creating, generating text, blogs, mark
 Be precise and confident in your classification.`
         },
         {
-          role: "user", 
+          role: "user",
           content: query
         }
       ],
@@ -74,7 +74,7 @@ Be precise and confident in your classification.`
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
-    
+
     return {
       category: result.category || 'content_generation',
       action: result.action || 'generate_content',
@@ -85,7 +85,7 @@ Be precise and confident in your classification.`
     logger.error('AI intent extraction failed, using fallback', { error: errorMessage });
     // Fallback to simple keyword matching
     const queryLower = query.toLowerCase();
-    
+
     if (queryLower.includes('recruit') || queryLower.includes('hire') || queryLower.includes('candidate') || queryLower.includes('resume') || queryLower.includes('interview')) {
       return {
         category: 'recruitment',
@@ -93,7 +93,7 @@ Be precise and confident in your classification.`
         subcategory: 'candidate_management'
       };
     }
-    
+
     return {
       category: 'content_generation',
       action: 'generate_content',
@@ -143,20 +143,20 @@ If no entities found, return an empty array [].`
 
     const result = JSON.parse(response.choices[0].message.content || '{"entities": []}');
     const entities = result.entities || result || [];
-    
+
     return entities.map((entity: any) => ({
       type: entity.type || 'unknown',
       value: entity.value || '',
       startIndex: entity.startIndex || 0,
       endIndex: entity.endIndex || 0
     }));
-    
+
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('AI entity extraction failed, using fallback', { error: errorMessage });
     // Fallback to regex-based extraction
     const entities: EntityExtraction[] = [];
-    
+
     // Email extraction
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
     const emails = query.match(emailRegex) || [];
@@ -217,18 +217,18 @@ Consider:
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
     return result.sentiment || 'neutral';
-    
+
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('AI sentiment analysis failed, using fallback', { error: errorMessage });
     // Simple fallback
     const positiveWords = ['good', 'great', 'excellent', 'love', 'amazing', 'perfect', 'wonderful', 'please', 'help'];
     const negativeWords = ['bad', 'terrible', 'hate', 'awful', 'horrible', 'worst', 'disappointing', 'problem', 'issue'];
-    
+
     const queryLower = query.toLowerCase();
     const positiveCount = positiveWords.filter(word => queryLower.includes(word)).length;
     const negativeCount = negativeWords.filter(word => queryLower.includes(word)).length;
-    
+
     if (positiveCount > negativeCount) return 'positive';
     if (negativeCount > positiveCount) return 'negative';
     return 'neutral';
