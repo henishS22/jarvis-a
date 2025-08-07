@@ -42,7 +42,7 @@ app.get('/', (req, res) => {
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: #0f0f23;
+            background: #1a1a1a;
             color: #ffffff;
             height: 100vh;
             overflow: hidden;
@@ -59,8 +59,8 @@ app.get('/', (req, res) => {
 
         .header {
             padding: 16px 20px;
-            background: rgba(15, 15, 35, 0.95);
-            border-bottom: 1px solid #2a2a3a;
+            background: rgba(26, 26, 26, 0.95);
+            border-bottom: 1px solid #333333;
             backdrop-filter: blur(10px);
             position: sticky;
             top: 0;
@@ -72,7 +72,7 @@ app.get('/', (req, res) => {
             font-weight: 600;
             color: #ffffff;
             text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -99,7 +99,7 @@ app.get('/', (req, res) => {
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -111,7 +111,7 @@ app.get('/', (req, res) => {
             font-size: 32px;
             font-weight: 700;
             margin-bottom: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -133,9 +133,9 @@ app.get('/', (req, res) => {
         }
 
         .agent-pill {
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            color: #667eea;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: #00d4ff;
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 14px;
@@ -165,12 +165,12 @@ app.get('/', (req, res) => {
         }
 
         .message.user .message-avatar {
-            background: #10a37f;
+            background: #404040;
             color: white;
         }
 
         .message.assistant .message-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
             color: white;
         }
 
@@ -180,7 +180,7 @@ app.get('/', (req, res) => {
         }
 
         .message.user .message-content {
-            background: #2f2f2f;
+            background: #333333;
             padding: 12px 16px;
             border-radius: 18px 18px 6px 18px;
             color: #ffffff;
@@ -210,7 +210,7 @@ app.get('/', (req, res) => {
         .typing-dots span {
             width: 6px;
             height: 6px;
-            background: #667eea;
+            background: #00d4ff;
             border-radius: 50%;
             animation: typing 1.4s infinite;
         }
@@ -225,8 +225,8 @@ app.get('/', (req, res) => {
 
         .input-container {
             padding: 20px;
-            background: rgba(15, 15, 35, 0.95);
-            border-top: 1px solid #2a2a3a;
+            background: rgba(26, 26, 26, 0.95);
+            border-top: 1px solid #333333;
             backdrop-filter: blur(10px);
         }
 
@@ -251,7 +251,7 @@ app.get('/', (req, res) => {
         }
 
         .input-field:focus {
-            border-color: #667eea;
+            border-color: #00d4ff;
         }
 
         .input-field::placeholder {
@@ -265,7 +265,7 @@ app.get('/', (req, res) => {
             transform: translateY(-50%);
             width: 32px;
             height: 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
             border: none;
             border-radius: 50%;
             color: white;
@@ -290,10 +290,10 @@ app.get('/', (req, res) => {
 
         .metadata {
             font-size: 12px;
-            color: #666;
+            color: #888;
             margin-top: 8px;
             padding-top: 8px;
-            border-top: 1px solid #333;
+            border-top: 1px solid #444;
         }
 
         /* Scrollbar styling */
