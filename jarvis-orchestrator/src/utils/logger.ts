@@ -93,8 +93,8 @@ export function logError(error: Error, context?: any) {
 }
 
 // Create logs directory if it doesn't exist
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const logsDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logsDir)) {

@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import { orchestrate } from './controllers/orchestratorController';
 import { logger } from './utils/logger';
 
