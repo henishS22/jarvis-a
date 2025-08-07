@@ -18,7 +18,7 @@ async function processWithAgents(selectedAgents, request, requestId) {
             agentTypes: selectedAgents.map(a => a.type)
         });
         const results = [];
-        const sortedAgents = [...selectedAgents].sort((a, b) => a.priority - b.priority);
+        const sortedAgents = [...selectedAgents];
         for (const agent of sortedAgents) {
             try {
                 const startTime = Date.now();
@@ -51,9 +51,7 @@ async function processWithAgents(selectedAgents, request, requestId) {
                         details: errorDetails
                     },
                     metadata: {
-                        priority: agent.priority,
                         capabilities: agent.capabilities,
-                        maturityLevel: agent.maturityLevel,
                         timestamp: new Date().toISOString()
                     },
                     processingTime: 0
@@ -87,7 +85,6 @@ async function callAgent(agent, request, requestId) {
         query: request.query,
         context: request.context,
         capabilities: agent.capabilities,
-        maturityLevel: agent.maturityLevel,
         requestId
     };
     try {
@@ -105,9 +102,7 @@ async function callAgent(agent, request, requestId) {
             data: response.data.result,
             error: null,
             metadata: {
-                priority: agent.priority,
                 capabilities: agent.capabilities,
-                maturityLevel: agent.maturityLevel,
                 timestamp: new Date().toISOString(),
                 aiModel: response.data.metadata?.aiModel,
                 tokensUsed: response.data.metadata?.tokensUsed
@@ -133,12 +128,9 @@ async function processFallback(request, requestId) {
     try {
         logger_1.logger.info('Attempting fallback processing', { requestId });
         const fallbackAgent = {
-            type: 'general_assistant',
-            priority: 99,
+            type: 'content_agent',
             reasoning: 'Fallback processing after all agents failed',
-            capabilities: ['general_query_processing'],
-            maturityLevel: 'M2',
-            estimatedProcessingTime: 2000
+            capabilities: ['general_query_processing']
         };
         return await callAgent(fallbackAgent, request, requestId);
     }

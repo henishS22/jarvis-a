@@ -5,25 +5,20 @@ const logger_1 = require("../utils/logger");
 async function routeTask(nlpAnalysis, context) {
     try {
         logger_1.logger.info('Starting task routing', {
-            intent: nlpAnalysis.intent.category,
-            complexity: nlpAnalysis.complexity
+            intent: nlpAnalysis.intent.category
         });
         const strategy = determineRoutingStrategy(nlpAnalysis, context);
         const selectedAgents = await selectAgents(nlpAnalysis, strategy, context);
-        const confidence = calculateRoutingConfidence(nlpAnalysis, selectedAgents);
         const routingDecision = {
             strategy,
             selectedAgents,
-            confidence,
             reasoning: generateRoutingReasoning(nlpAnalysis, selectedAgents),
             fallbackAgents: selectFallbackAgents(selectedAgents),
-            estimatedProcessingTime: estimateProcessingTime(selectedAgents, nlpAnalysis.complexity),
             timestamp: new Date().toISOString()
         };
         logger_1.logger.info('Task routing completed', {
             strategy: routingDecision.strategy,
-            agentCount: selectedAgents.length,
-            confidence: confidence
+            agentCount: selectedAgents.length
         });
         return routingDecision;
     }
@@ -34,94 +29,70 @@ async function routeTask(nlpAnalysis, context) {
     }
 }
 function determineRoutingStrategy(nlpAnalysis, context) {
-    const { intent, complexity, priority } = nlpAnalysis;
-    if (priority === 'urgent' || priority === 'high') {
-        return complexity === 'high' ? 'hybrid' : 'parallel';
-    }
-    if (complexity === 'high' && requiresSequentialProcessing(intent.category)) {
-        return 'sequential';
-    }
-    if (complexity === 'low' && isSingleDomainTask(intent.category)) {
+    const { intent } = nlpAnalysis;
+    if (isSingleDomainTask(intent.category)) {
         return 'single';
     }
     return 'parallel';
 }
 async function selectAgents(nlpAnalysis, strategy, context) {
-    const { intent, entities, complexity } = nlpAnalysis;
+    const { intent, entities } = nlpAnalysis;
     const selectedAgents = [];
-    const primaryAgent = selectPrimaryAgent(intent.category, complexity);
+    const primaryAgent = selectPrimaryAgent(intent.category);
     if (primaryAgent) {
         selectedAgents.push(primaryAgent);
     }
-    const secondaryAgents = await selectSecondaryAgents(entities, complexity, intent.category);
+    const secondaryAgents = await selectSecondaryAgents(entities, intent.category);
     selectedAgents.push(...secondaryAgents);
     if (selectedAgents.length === 0) {
         selectedAgents.push({
             type: 'content_agent',
-            priority: 1,
             reasoning: 'Default to content agent for general assistance',
-            capabilities: ['text_generation', 'general_query_processing'],
-            maturityLevel: 'M4',
-            estimatedProcessingTime: 3000
+            capabilities: ['text_generation', 'general_query_processing']
         });
     }
     return selectedAgents;
 }
-function selectPrimaryAgent(intentCategory, complexity) {
+function selectPrimaryAgent(intentCategory) {
     const agentMap = {
         recruitment: {
             type: 'recruitment_agent',
-            capabilities: ['resume_processing', 'candidate_scoring', 'interview_scheduling'],
-            maturityLevel: 'M2'
+            capabilities: ['resume_processing', 'candidate_scoring', 'interview_scheduling']
         },
         content_generation: {
             type: 'content_agent',
-            capabilities: ['text_generation', 'content_optimization', 'multi_language'],
-            maturityLevel: 'M4'
+            capabilities: ['text_generation', 'content_optimization', 'multi_language']
         }
     };
     const agentConfig = agentMap[intentCategory];
     if (!agentConfig) {
         return {
             type: 'content_agent',
-            priority: 1,
             reasoning: `Fallback to content agent for general assistance`,
-            capabilities: ['text_generation', 'content_optimization', 'multi_language'],
-            maturityLevel: 'M4',
-            estimatedProcessingTime: getBaseProcessingTime(complexity)
+            capabilities: ['text_generation', 'content_optimization', 'multi_language']
         };
     }
     return {
         type: agentConfig.type,
-        priority: 1,
         reasoning: `Primary agent for ${intentCategory} tasks`,
-        capabilities: agentConfig.capabilities,
-        maturityLevel: agentConfig.maturityLevel,
-        estimatedProcessingTime: getBaseProcessingTime(complexity)
+        capabilities: agentConfig.capabilities
     };
 }
-async function selectSecondaryAgents(entities, complexity, primaryIntent) {
+async function selectSecondaryAgents(entities, primaryIntent) {
     const secondaryAgents = [];
-    if (primaryIntent === 'recruitment' && (entities.some(e => e.type === 'skill') ||
-        complexity === 'high')) {
+    if (primaryIntent === 'recruitment' && entities.some(e => e.type === 'skill')) {
         secondaryAgents.push({
             type: 'content_agent',
-            priority: 2,
             reasoning: 'Content generation needed for recruitment documentation',
-            capabilities: ['text_generation', 'documentation'],
-            maturityLevel: 'M4',
-            estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.6
+            capabilities: ['text_generation', 'documentation']
         });
     }
     if (primaryIntent === 'content_generation' && (entities.some(e => e.type === 'person') ||
         entities.some(e => e.type === 'skill'))) {
         secondaryAgents.push({
             type: 'recruitment_agent',
-            priority: 2,
             reasoning: 'Recruitment context detected in content request',
-            capabilities: ['candidate_analysis', 'skill_assessment'],
-            maturityLevel: 'M2',
-            estimatedProcessingTime: getBaseProcessingTime(complexity) * 0.5
+            capabilities: ['candidate_analysis', 'skill_assessment']
         });
     }
     return secondaryAgents;
@@ -132,49 +103,30 @@ function selectFallbackAgents(selectedAgents) {
         if (agent.type === 'recruitment_agent') {
             fallbacks.push({
                 type: 'content_agent',
-                priority: 10,
                 reasoning: 'Content agent fallback for recruitment tasks',
-                capabilities: ['text_processing', 'data_analysis'],
-                maturityLevel: 'M4',
-                estimatedProcessingTime: 4000
+                capabilities: ['text_processing', 'data_analysis']
             });
         }
         else if (agent.type === 'content_agent') {
             fallbacks.push({
                 type: 'recruitment_agent',
-                priority: 10,
                 reasoning: 'Recruitment agent fallback for content tasks',
-                capabilities: ['general_processing', 'data_analysis'],
-                maturityLevel: 'M2',
-                estimatedProcessingTime: 3000
+                capabilities: ['general_processing', 'data_analysis']
             });
         }
     });
     if (fallbacks.length === 0) {
         fallbacks.push({
             type: 'content_agent',
-            priority: 99,
             reasoning: 'Content agent as ultimate fallback for general assistance',
-            capabilities: ['general_query_processing', 'text_generation'],
-            maturityLevel: 'M4',
-            estimatedProcessingTime: 2000
+            capabilities: ['general_query_processing', 'text_generation']
         });
     }
     return fallbacks;
 }
-function calculateRoutingConfidence(nlpAnalysis, selectedAgents) {
-    let confidence = nlpAnalysis.confidence;
-    if (selectedAgents.length > 0 && selectedAgents[0].priority === 1) {
-        confidence += 0.1;
-    }
-    const fallbackCount = selectedAgents.filter(a => a.priority > 5).length;
-    confidence -= fallbackCount * 0.05;
-    return Math.max(0.1, Math.min(0.95, confidence));
-}
 function generateRoutingReasoning(nlpAnalysis, selectedAgents) {
     const reasons = [
-        `Intent "${nlpAnalysis.intent.category}" detected with ${(nlpAnalysis.confidence * 100).toFixed(0)}% confidence`,
-        `Task complexity assessed as ${nlpAnalysis.complexity}`,
+        `Intent "${nlpAnalysis.intent.category}" detected`,
         `Selected ${selectedAgents.length} agent(s) for processing`
     ];
     if (selectedAgents.length > 1) {
@@ -182,20 +134,7 @@ function generateRoutingReasoning(nlpAnalysis, selectedAgents) {
     }
     return reasons.join('. ');
 }
-function estimateProcessingTime(selectedAgents, complexity) {
-    if (selectedAgents.length === 0)
-        return 1000;
-    const maxTime = Math.max(...selectedAgents.map(a => a.estimatedProcessingTime));
-    const avgTime = selectedAgents.reduce((sum, a) => sum + a.estimatedProcessingTime, 0) / selectedAgents.length;
-    return Math.round(selectedAgents.length > 1 ? avgTime : maxTime);
-}
-function requiresSequentialProcessing(intentCategory) {
-    return false;
-}
 function isSingleDomainTask(intentCategory) {
     return ['content_generation', 'recruitment'].includes(intentCategory);
-}
-function getBaseProcessingTime(complexity) {
-    return 3000;
 }
 //# sourceMappingURL=taskRouter.js.map

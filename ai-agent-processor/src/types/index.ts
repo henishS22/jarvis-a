@@ -4,7 +4,6 @@ export interface AgentProcessingRequest {
   query: string;
   context?: TaskContext;
   capabilities: string[];
-  maturityLevel: string;
   requestId: string;
 }
 
@@ -21,7 +20,6 @@ export interface AgentProcessingResponse {
     serviceSelection?: {
       service: string;
       reasoning: string;
-      confidence: number;
     };
   };
 }
@@ -31,8 +29,6 @@ export interface TaskContext {
   userId?: string;
   sessionId?: string;
   source?: 'web' | 'mobile' | 'api' | 'voice';
-  language?: 'en' | 'fr';
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
   metadata?: Record<string, any>;
 }
 
@@ -58,7 +54,6 @@ export interface ServiceAvailability {
 export interface AgentCapability {
   name: string;
   description: string;
-  maturityLevel: 'M1' | 'M2' | 'M3' | 'M4' | 'M5';
   supportedBy: ('openai' | 'anthropic')[];
 }
 
@@ -67,26 +62,12 @@ export interface ServiceSelection {
   service: 'openai' | 'anthropic';
   model: string;
   reasoning: string;
-  confidence: number;
 }
 
-// Agent type definitions
+// Agent type definitions - simplified to two-agent system
 export type AgentType = 
   | 'recruitment_agent'
-  | 'crm_agent'
-  | 'content_agent'
-  | 'project_agent'
-  | 'treasury_agent'
-  | 'general_assistant';
-
-// Maturity levels as defined in architecture
-export type MaturityLevel = 'M1' | 'M2' | 'M3' | 'M4' | 'M5';
-
-// Priority levels
-export type Priority = 'low' | 'medium' | 'high' | 'urgent';
-
-// Supported languages
-export type Language = 'en' | 'fr';
+  | 'content_agent';
 
 // Source types
 export type Source = 'web' | 'mobile' | 'api' | 'voice';

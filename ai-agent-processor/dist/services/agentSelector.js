@@ -41,29 +41,25 @@ function getServicePreference(agentType, query, capabilities, availability) {
             condition: agentType === 'recruitment_agent',
             service: 'openai',
             model: 'gpt-4o',
-            reasoning: 'OpenAI provides excellent structured analysis for recruitment tasks',
-            confidence: 0.85
+            reasoning: 'OpenAI provides excellent structured analysis for recruitment tasks'
         },
         {
             condition: agentType === 'content_agent' || hasCreativeContent,
             service: 'anthropic',
             model: 'claude-sonnet-4-20250514',
-            reasoning: 'Anthropic excels at creative content generation and writing tasks',
-            confidence: 0.80
+            reasoning: 'Anthropic excels at creative content generation and writing tasks'
         },
         {
             condition: hasAnalyticalContent && isComplexQuery,
             service: 'anthropic',
             model: 'claude-sonnet-4-20250514',
-            reasoning: 'Anthropic provides superior reasoning for complex analytical tasks',
-            confidence: 0.75
+            reasoning: 'Anthropic provides superior reasoning for complex analytical tasks'
         },
         {
             condition: agentType === 'content_agent',
             service: 'anthropic',
             model: 'claude-sonnet-4-20250514',
-            reasoning: 'Anthropic delivers higher quality content generation',
-            confidence: 0.70
+            reasoning: 'Anthropic delivers higher quality content generation'
         }
     ];
     for (const rule of selectionRules) {
@@ -71,8 +67,7 @@ function getServicePreference(agentType, query, capabilities, availability) {
             return {
                 service: rule.service,
                 model: rule.model,
-                reasoning: rule.reasoning,
-                confidence: rule.confidence
+                reasoning: rule.reasoning
             };
         }
     }
@@ -80,16 +75,14 @@ function getServicePreference(agentType, query, capabilities, availability) {
         return {
             service: 'openai',
             model: 'gpt-4o',
-            reasoning: 'Fallback to OpenAI as primary available service',
-            confidence: 0.50
+            reasoning: 'Fallback to OpenAI as primary available service'
         };
     }
     if (availability.anthropicAvailable) {
         return {
             service: 'anthropic',
             model: 'claude-sonnet-4-20250514',
-            reasoning: 'Fallback to Anthropic as only available service',
-            confidence: 0.50
+            reasoning: 'Fallback to Anthropic as only available service'
         };
     }
     throw new Error('No AI services available');

@@ -209,8 +209,6 @@ function buildUserPrompt(query: string, context?: TaskContext): string {
     if (context) {
       prompt += '\n\nContext:';
       if (context.userId) prompt += `\n- User ID: ${context.userId}`;
-      if (context.language) prompt += `\n- Language: ${context.language}`;
-      if (context.priority) prompt += `\n- Priority: ${context.priority}`;
       if (context.source) prompt += `\n- Source: ${context.source}`;
       if (context.metadata) {
         prompt += `\n- Additional context: ${JSON.stringify(context.metadata)}`;

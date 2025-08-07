@@ -56,10 +56,8 @@ export async function orchestrate(req: Request, res: Response): Promise<void> {
           nlpAnalysis,
           routingDecision: {
             strategy: routingDecision.strategy,
-            confidence: routingDecision.confidence,
             selectedAgents: routingDecision.selectedAgents.map((a: AgentSelection) => ({
               type: a.type,
-              priority: a.priority,
               reasoning: a.reasoning
             }))
           },

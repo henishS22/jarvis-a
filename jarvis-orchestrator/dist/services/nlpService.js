@@ -15,18 +15,12 @@ async function analyzeQuery(query) {
         const analysis = {
             intent,
             entities,
-            complexity: 'medium',
-            priority: intent.category === 'recruitment' ? 'high' : 'medium',
-            confidence: intent.confidence,
-            language: 'en',
             sentiment: await analyzeSentiment(query),
-            keywords: [],
             timestamp: new Date().toISOString()
         };
         logger_1.logger.info('NLP analysis completed', {
             intent: analysis.intent.category,
-            confidence: analysis.confidence,
-            complexity: analysis.complexity
+            sentiment: analysis.sentiment
         });
         return analysis;
     }
@@ -72,7 +66,6 @@ Be precise and confident in your classification.`
         return {
             category: result.category || 'content_generation',
             action: result.action || 'generate_content',
-            confidence: Math.max(0.1, Math.min(1.0, result.confidence || 0.7)),
             subcategory: result.subcategory || 'content_creation'
         };
     }
@@ -84,14 +77,12 @@ Be precise and confident in your classification.`
             return {
                 category: 'recruitment',
                 action: 'process_candidate',
-                confidence: 0.75,
                 subcategory: 'candidate_management'
             };
         }
         return {
             category: 'content_generation',
             action: 'generate_content',
-            confidence: 0.70,
             subcategory: 'content_creation'
         };
     }
@@ -139,7 +130,6 @@ If no entities found, return an empty array [].`
         return entities.map((entity) => ({
             type: entity.type || 'unknown',
             value: entity.value || '',
-            confidence: Math.max(0.1, Math.min(1.0, entity.confidence || 0.8)),
             startIndex: entity.startIndex || 0,
             endIndex: entity.endIndex || 0
         }));
@@ -155,7 +145,6 @@ If no entities found, return an empty array [].`
             entities.push({
                 type: 'email',
                 value: email,
-                confidence: 0.95,
                 startIndex,
                 endIndex: startIndex + email.length
             });
@@ -167,7 +156,6 @@ If no entities found, return an empty array [].`
             entities.push({
                 type: 'currency',
                 value: currency,
-                confidence: 0.88,
                 startIndex,
                 endIndex: startIndex + currency.length
             });
