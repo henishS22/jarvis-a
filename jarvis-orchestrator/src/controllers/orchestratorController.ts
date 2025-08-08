@@ -307,27 +307,29 @@ export async function getChatMessages(req: Request, res: Response): Promise<void
             return;
         }
         
-        // Query to get recent messages for the session (at least 5 if available)
+        // Query to get recent messages for the session as JSON (handles multi-line content properly)
         const query = `
-            SELECT 
-                message_id,
-                session_id,
-                user_id,
-                role,
-                content,
-                metadata,
-                created_at
+            SELECT json_agg(
+                json_build_object(
+                    'message_id', message_id,
+                    'session_id', session_id,
+                    'user_id', user_id,
+                    'role', role,
+                    'content', content,
+                    'metadata', metadata,
+                    'created_at', created_at
+                )
+                ORDER BY created_at ASC
+            ) as messages_json
             FROM chat_messages
             WHERE session_id = CAST($1 AS UUID)
-            ORDER BY created_at ASC
-            LIMIT 50
         `;
 
         const result = await sqlExecutor.executeQuery(query, [sessionId]);
 
         if (result.success) {
-            // Parse the output to extract message data
-            const messages = parseMessagesFromOutput(result.output);
+            // Parse the JSON output to extract message data
+            const messages = parseMessagesFromJsonOutput(result.output);
             
             res.json({
                 messages,
@@ -537,6 +539,130 @@ function parseMessagesFromOutput(output: string): any[] {
     } catch (error) {
         logger.warn('Failed to parse messages output', { 
             error: error instanceof Error ? error.message : String(error),
+            service: 'jarvis-orchestrator'
+        });
+        return [];
+    }
+}
+
+// New improved JSON parsing function for multi-line content
+function parseMessagesFromJsonOutput(output: string): any[] {
+    try {
+        const lines = output.split('\n').filter(line => line.trim());
+        
+        // Find the JSON data line(s) - PostgreSQL JSON output is usually clean
+        let jsonData = '';
+        let foundData = false;
+        
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            
+            // Skip header and separator lines
+            if (trimmedLine.includes('messages_json') || trimmedLine.includes('---')) {
+                continue;
+            }
+            
+            // Skip row count lines
+            if (trimmedLine.includes('(') && trimmedLine.includes('row')) {
+                break;
+            }
+            
+            // Look for JSON array start
+            if (trimmedLine.startsWith('[') || foundData) {
+                jsonData += trimmedLine;
+                foundData = true;
+                
+                // Check if this completes the JSON (ends with ])
+                if (trimmedLine.endsWith(']')) {
+                    break;
+                }
+            }
+        }
+        
+        if (!jsonData) {
+            logger.warn('No JSON data found in SQL output', {
+                service: 'jarvis-orchestrator'
+            });
+            return [];
+        }
+        
+        // Parse the JSON array
+        const messagesArray = JSON.parse(jsonData);
+        
+        if (!Array.isArray(messagesArray)) {
+            logger.warn('Parsed data is not an array', {
+                service: 'jarvis-orchestrator'
+            });
+            return [];
+        }
+        
+        // Process each message to handle content parsing
+        const processedMessages = messagesArray.map(message => {
+            if (!message) return null;
+            
+            let content = message.content;
+            
+            // For assistant messages, parse JSON content properly
+            if (message.role === 'assistant' && content && typeof content === 'string') {
+                // Check if content starts with JSON-like structure
+                if (content.trim().startsWith('{') && content.trim().endsWith('}')) {
+                    try {
+                        const parsed = JSON.parse(content);
+                        if (typeof parsed === 'object' && parsed !== null) {
+                            // Extract meaningful content from common JSON response formats
+                            const possibleKeys = ['content', 'analysis', 'text', 'response', 'message', 'result', 'data'];
+                            
+                            for (const key of possibleKeys) {
+                                if (parsed[key] && typeof parsed[key] === 'string') {
+                                    content = parsed[key];
+                                    logger.info('Extracted content from JSON', {
+                                        key: key,
+                                        contentLength: content.length,
+                                        service: 'jarvis-orchestrator'
+                                    });
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // If parsing fails, keep the original content
+                        logger.warn('Failed to parse assistant content as JSON', {
+                            error: e instanceof Error ? e.message : String(e),
+                            contentPreview: content.substring(0, 100) + '...',
+                            service: 'jarvis-orchestrator'
+                        });
+                    }
+                } else {
+                    logger.info('Content is not JSON format, keeping as-is', {
+                        contentType: typeof content,
+                        contentStart: content.substring(0, 50),
+                        service: 'jarvis-orchestrator'
+                    });
+                }
+            }
+            
+            return {
+                message_id: message.message_id,
+                session_id: message.session_id,
+                user_id: message.user_id,
+                role: message.role,
+                content: content,
+                metadata: message.metadata,
+                created_at: message.created_at
+            };
+        }).filter(Boolean);
+        
+        logger.info('Parsed messages from JSON successfully', {
+            messageCount: processedMessages.length,
+            service: 'jarvis-orchestrator'
+        });
+        
+        return processedMessages;
+        
+    } catch (error) {
+        logger.error('Failed to parse messages from JSON output', { 
+            error: error instanceof Error ? error.message : String(error),
+            output: output.substring(0, 200) + '...',
             service: 'jarvis-orchestrator'
         });
         return [];
