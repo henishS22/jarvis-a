@@ -226,8 +226,14 @@ async function loadSessionMessages(sessionId) {
                     timestamp: message.created_at
                 });
                 
+                // Parse assistant message content if it's JSON
+                let messageContent = message.content;
+                if (message.role === 'assistant') {
+                    messageContent = parseAssistantContent(message.content);
+                }
+                
                 addMessage(
-                    message.content, 
+                    messageContent, 
                     message.role === 'user',
                     message.metadata || null,
                     false // Don't hide welcome screen for loaded messages
@@ -304,6 +310,48 @@ function formatTimestamp(timestamp) {
         }
     } catch (error) {
         return 'Recently';
+    }
+}
+
+function parseAssistantContent(content) {
+    try {
+        // If it's already a regular string, return as is
+        if (typeof content === 'string' && !content.startsWith('{')) {
+            return content;
+        }
+        
+        // Try to parse as JSON
+        const parsed = JSON.parse(content);
+        
+        // Extract meaningful content from common JSON response formats
+        if (typeof parsed === 'object' && parsed !== null) {
+            // Try different common keys in order of preference
+            const possibleKeys = ['content', 'analysis', 'text', 'response', 'message', 'result', 'data'];
+            
+            for (const key of possibleKeys) {
+                if (parsed[key] && typeof parsed[key] === 'string') {
+                    console.log(`Extracted ${key} from assistant message:`, parsed[key].substring(0, 100) + '...');
+                    return parsed[key];
+                }
+            }
+            
+            // If no common keys found, try to find the first string value
+            for (const [key, value] of Object.entries(parsed)) {
+                if (typeof value === 'string' && value.length > 0) {
+                    console.log(`Extracted ${key} from assistant message:`, value.substring(0, 100) + '...');
+                    return value;
+                }
+            }
+            
+            // If still no string found, return the entire JSON as formatted string
+            return JSON.stringify(parsed, null, 2);
+        }
+        
+        return content;
+    } catch (error) {
+        // If parsing fails, return the original content
+        console.log('Failed to parse assistant content as JSON, using as-is:', error);
+        return content;
     }
 }
 
