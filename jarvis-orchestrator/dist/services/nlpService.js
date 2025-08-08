@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.analyzeQuery = analyzeQuery;
 const openai_1 = __importDefault(require("openai"));
 const logger_1 = require("../utils/logger");
-const openai = new openai_1.default({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new openai_1.default({ apiKey: process.env.OPENAI_API_KEY || '' });
 async function analyzeQuery(query) {
     try {
         logger_1.logger.info('Starting NLP analysis', { queryLength: query.length });

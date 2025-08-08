@@ -41,9 +41,9 @@ app.get('/', (req, res) => {
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: #0f0f23;
-            color: #ffffff;
+            font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            background: #343541;
+            color: #ececf1;
             height: 100vh;
             overflow: hidden;
         }
@@ -58,30 +58,24 @@ app.get('/', (req, res) => {
         }
 
         .header {
-            padding: 16px 20px;
-            background: rgba(15, 15, 35, 0.95);
-            border-bottom: 1px solid #2a2a3a;
-            backdrop-filter: blur(10px);
+            padding: 12px 16px;
+            background: #343541;
+            border-bottom: 1px solid #565869;
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
         .header h1 {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 600;
-            color: #ffffff;
+            color: #ececf1;
             text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .messages-container {
             flex: 1;
             overflow-y: auto;
-            padding: 0 20px;
             scroll-behavior: smooth;
         }
 
@@ -92,114 +86,98 @@ app.get('/', (req, res) => {
             align-items: center;
             height: 100%;
             text-align: center;
-            padding: 40px 20px;
-        }
-
-        .welcome-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 24px;
-            font-size: 32px;
+            padding: 48px 16px;
         }
 
         .welcome-title {
             font-size: 32px;
-            font-weight: 700;
+            font-weight: 600;
             margin-bottom: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #ececf1;
         }
 
         .welcome-subtitle {
-            font-size: 18px;
-            color: #a0a0a0;
+            font-size: 16px;
+            color: #c5c5d2;
             margin-bottom: 32px;
             line-height: 1.5;
-        }
-
-        .agent-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: center;
-            margin-bottom: 40px;
-        }
-
-        .agent-pill {
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            color: #667eea;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
+            max-width: 400px;
         }
 
         .message {
-            margin: 24px 0;
-            display: flex;
-            gap: 12px;
+            border-bottom: 1px solid #565869;
+            padding: 24px 16px;
         }
 
-        .message.user {
-            flex-direction: row-reverse;
+        .message-content {
+            max-width: 768px;
+            margin: 0 auto;
+            display: flex;
+            gap: 16px;
         }
 
         .message-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            border-radius: 2px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
             font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .message.user {
+            background: #444654;
         }
 
         .message.user .message-avatar {
-            background: #10a37f;
+            background: #5436da;
             color: white;
         }
 
         .message.assistant .message-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #19c37d;
             color: white;
         }
 
-        .message-content {
+        .message-text {
             flex: 1;
-            max-width: 70%;
+            line-height: 1.75;
+            color: #ececf1;
+            font-size: 16px;
         }
 
-        .message.user .message-content {
-            background: #2f2f2f;
-            padding: 12px 16px;
-            border-radius: 18px 18px 6px 18px;
-            color: #ffffff;
-        }
-
-        .message.assistant .message-content {
-            background: transparent;
-            padding: 0;
-            line-height: 1.7;
-            color: #e5e5e5;
+        .message.user .message-text {
+            color: #ececf1;
         }
 
         .thinking {
+            border-bottom: 1px solid #565869;
+            padding: 24px 16px;
+        }
+
+        .thinking .message-content {
+            max-width: 768px;
+            margin: 0 auto;
+            display: flex;
+            gap: 16px;
+        }
+
+        .thinking .message-avatar {
+            background: #19c37d;
+            color: white;
+        }
+
+        .thinking-text {
+            flex: 1;
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #a0a0a0;
+            color: #c5c5d2;
             font-style: italic;
-            padding: 8px 0;
         }
 
         .typing-dots {
@@ -208,9 +186,9 @@ app.get('/', (req, res) => {
         }
 
         .typing-dots span {
-            width: 6px;
-            height: 6px;
-            background: #667eea;
+            width: 4px;
+            height: 4px;
+            background: #c5c5d2;
             border-radius: 50%;
             animation: typing 1.4s infinite;
         }
@@ -219,86 +197,85 @@ app.get('/', (req, res) => {
         .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 
         @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
+            0%, 60%, 100% { opacity: 0.25; }
+            30% { opacity: 1; }
         }
 
         .input-container {
-            padding: 20px;
-            background: rgba(15, 15, 35, 0.95);
-            border-top: 1px solid #2a2a3a;
-            backdrop-filter: blur(10px);
+            padding: 12px 16px 24px;
+            background: #343541;
         }
 
         .input-wrapper {
             position: relative;
-            max-width: 100%;
+            max-width: 768px;
+            margin: 0 auto;
         }
 
         .input-field {
             width: 100%;
-            background: #2a2a2a;
-            border: 1px solid #404040;
-            border-radius: 24px;
-            padding: 16px 60px 16px 20px;
+            background: #40414f;
+            border: 1px solid #565869;
+            border-radius: 12px;
+            padding: 12px 48px 12px 16px;
             font-size: 16px;
-            color: #ffffff;
+            color: #ececf1;
             resize: none;
-            min-height: 56px;
+            min-height: 24px;
             max-height: 200px;
             outline: none;
             transition: border-color 0.2s ease;
+            font-family: inherit;
+            line-height: 24px;
         }
 
         .input-field:focus {
-            border-color: #667eea;
+            border-color: #565869;
+            box-shadow: 0 0 0 2px rgba(86, 88, 105, 0.1);
         }
 
         .input-field::placeholder {
-            color: #888;
+            color: #8e8ea0;
         }
 
         .send-button {
             position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
+            right: 8px;
+            bottom: 8px;
             width: 32px;
             height: 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #ececf1;
             border: none;
-            border-radius: 50%;
-            color: white;
+            border-radius: 6px;
+            color: #343541;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s ease;
-            opacity: 0.7;
+            transition: background-color 0.2s ease;
         }
 
-        .send-button:hover {
-            transform: translateY(-50%) scale(1.1);
-            opacity: 1;
+        .send-button:hover:not(:disabled) {
+            background: #d1d5db;
         }
 
         .send-button:disabled {
-            opacity: 0.3;
+            background: #565869;
+            color: #8e8ea0;
             cursor: not-allowed;
-            transform: translateY(-50%) scale(1);
         }
 
         .metadata {
             font-size: 12px;
-            color: #666;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid #333;
+            color: #8e8ea0;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #565869;
         }
 
         /* Scrollbar styling */
         .messages-container::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
 
         .messages-container::-webkit-scrollbar-track {
@@ -306,29 +283,33 @@ app.get('/', (req, res) => {
         }
 
         .messages-container::-webkit-scrollbar-thumb {
-            background: #404040;
-            border-radius: 3px;
+            background: #565869;
+            border-radius: 4px;
         }
 
         .messages-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #6b7280;
         }
 
         @media (max-width: 640px) {
-            .chat-container {
-                height: 100vh;
-            }
-            
             .header {
                 padding: 12px 16px;
             }
             
-            .messages-container {
-                padding: 0 16px;
+            .message {
+                padding: 20px 12px;
+            }
+            
+            .message-content {
+                gap: 12px;
             }
             
             .input-container {
-                padding: 16px;
+                padding: 12px;
+            }
+            
+            .welcome-screen {
+                padding: 32px 16px;
             }
         }
     </style>
@@ -336,40 +317,13 @@ app.get('/', (req, res) => {
 <body>
     <div class="chat-container">
         <div class="header">
-            <h1>JARVIS AI</h1>
+            <h1>JARVIS</h1>
         </div>
         
-<<<<<<< HEAD
-        <div class="agent-grid">
-            <div class="agent-card">
-                <h3>Recruitment Agent</h3>
-                <p>Resume processing, candidate evaluation, interview scheduling, and talent acquisition optimization.</p>
-            </div>
-            <div class="agent-card">
-                <h3>Content Agent</h3>
-                <p>Text generation, content optimization, creative writing, and multi-language support.</p>
-            </div>
-            <div class="agent-card">
-                <h3>General Assistant</h3>
-                <p>Fallback processing, general queries, basic NLP, and error handling.</p>
-            </div>
-        </div>
-        
-        <div class="demo-section">
-            <h3>Try the JARVIS System</h3>
-            <textarea class="query-input" id="queryInput" placeholder="Example: 'I need help analyzing a resume for a software engineering position' or 'Generate a marketing blog post about AI'"></textarea>
-            <button class="query-button" onclick="sendQuery()">Send Query to JARVIS</button>
-            <div class="response-area" id="responseArea">Response will appear here...</div>
-=======
         <div class="messages-container" id="messagesContainer">
             <div class="welcome-screen" id="welcomeScreen">
-                <div class="welcome-icon">🤖</div>
-                <div class="welcome-title">Welcome to JARVIS</div>
-                <div class="welcome-subtitle">Your intelligent AI assistant with specialized agents for recruitment and content creation</div>
-                <div class="agent-pills">
-                    <div class="agent-pill">Recruitment Agent</div>
-                    <div class="agent-pill">Content Agent</div>
-                </div>
+                <div class="welcome-title">How can I help you today?</div>
+                <div class="welcome-subtitle">I'm JARVIS, your AI assistant with specialized capabilities for recruitment and content creation.</div>
             </div>
         </div>
         
@@ -378,7 +332,7 @@ app.get('/', (req, res) => {
                 <textarea 
                     class="input-field" 
                     id="messageInput" 
-                    placeholder="Ask me anything about recruitment, content creation, or general questions..."
+                    placeholder="Message JARVIS..."
                     rows="1"
                 ></textarea>
                 <button class="send-button" id="sendButton" onclick="sendMessage()">
@@ -387,7 +341,6 @@ app.get('/', (req, res) => {
                     </svg>
                 </button>
             </div>
->>>>>>> 771f1e1 (Update interface to a modern chat experience with dark theme)
         </div>
     </div>
 
@@ -408,21 +361,24 @@ app.get('/', (req, res) => {
             const messageDiv = document.createElement('div');
             messageDiv.className = \`message \${isUser ? 'user' : 'assistant'}\`;
             
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
             avatar.textContent = isUser ? 'U' : 'J';
             
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text';
             
             if (isUser) {
-                contentDiv.textContent = content;
+                textDiv.textContent = content;
             } else {
                 // Format assistant response
                 if (typeof content === 'object') {
                     try {
                         const result = content.results && content.results[0] ? content.results[0].data : 'Processing completed';
-                        contentDiv.innerHTML = \`
+                        textDiv.innerHTML = \`
                             <div style="margin-bottom: 12px;">\${typeof result === 'string' ? result : JSON.stringify(result, null, 2)}</div>
                         \`;
                         
@@ -436,18 +392,19 @@ app.get('/', (req, res) => {
                                 <strong>Agent:</strong> \${content.results?.[0]?.agentType || 'content_agent'} | 
                                 <strong>Model:</strong> \${content.results?.[0]?.metadata?.aiModel || 'claude-sonnet-4-20250514'}
                             \`;
-                            contentDiv.appendChild(metaDiv);
+                            textDiv.appendChild(metaDiv);
                         }
                     } catch (e) {
-                        contentDiv.textContent = JSON.stringify(content, null, 2);
+                        textDiv.textContent = JSON.stringify(content, null, 2);
                     }
                 } else {
-                    contentDiv.textContent = content;
+                    textDiv.textContent = content;
                 }
             }
             
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(contentDiv);
+            messageContent.appendChild(avatar);
+            messageContent.appendChild(textDiv);
+            messageDiv.appendChild(messageContent);
             messagesContainer.appendChild(messageDiv);
             
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -458,16 +415,19 @@ app.get('/', (req, res) => {
             
             const messagesContainer = document.getElementById('messagesContainer');
             const thinkingDiv = document.createElement('div');
-            thinkingDiv.className = 'message assistant';
+            thinkingDiv.className = 'thinking';
             thinkingDiv.id = 'thinking-message';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
             
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
             avatar.textContent = 'J';
             
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content thinking';
-            contentDiv.innerHTML = \`
+            const thinkingText = document.createElement('div');
+            thinkingText.className = 'thinking-text';
+            thinkingText.innerHTML = \`
                 JARVIS is thinking
                 <div class="typing-dots">
                     <span></span>
@@ -476,8 +436,9 @@ app.get('/', (req, res) => {
                 </div>
             \`;
             
-            thinkingDiv.appendChild(avatar);
-            thinkingDiv.appendChild(contentDiv);
+            messageContent.appendChild(avatar);
+            messageContent.appendChild(thinkingText);
+            thinkingDiv.appendChild(messageContent);
             messagesContainer.appendChild(thinkingDiv);
             
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
