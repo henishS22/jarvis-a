@@ -2,7 +2,6 @@ import OpenAI from 'openai';
 import { logger } from '../utils/logger';
 import { NLPAnalysis, QueryIntent, EntityExtraction } from '../types';
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || '' });
 
 /**
@@ -47,22 +46,24 @@ async function extractIntent(query: string): Promise<QueryIntent> {
       messages: [
         {
           role: "system",
-          content: `You are an AI intent classifier for a JARVIS system with two primary agents:
-1. RECRUITMENT: Resume processing, candidate evaluation, hiring, interview scheduling, job-related tasks
-2. CONTENT_GENERATION: Writing, creating content, blog posts, marketing materials, documentation
+          content: `
+            You are an AI intent classifier for a JARVIS system with two primary agents:
+            1. RECRUITMENT: Resume processing, candidate evaluation, hiring, interview scheduling, job-related tasks
+            2. CONTENT_GENERATION: Writing, creating content, blog posts, marketing materials, documentation
 
-Analyze the user query and classify it into one of these categories. Return ONLY a JSON object with this exact structure:
-{
-  "category": "recruitment" | "content_generation",
-  "action": "process_candidate" | "generate_content", 
-  "confidence": 0.0-1.0,
-  "subcategory": "candidate_management" | "content_creation"
-}
+            Analyze the user query and classify it into one of these categories. Return ONLY a JSON object with this exact structure:
+            {
+              "category": "recruitment" | "content_generation",
+              "action": "process_candidate" | "generate_content", 
+              "confidence": 0.0-1.0,
+              "subcategory": "candidate_management" | "content_creation"
+            }
 
-For recruitment: focus on hiring, candidates, resumes, interviews, job postings
-For content_generation: focus on writing, creating, generating text, blogs, marketing, documentation
+            For recruitment: focus on hiring, candidates, resumes, interviews, job postings
+            For content_generation: focus on writing, creating, generating text, blogs, marketing, documentation
 
-Be precise and confident in your classification.`
+            Be precise and confident in your classification.
+          `
         },
         {
           role: "user",
@@ -109,28 +110,30 @@ async function extractEntities(query: string): Promise<EntityExtraction[]> {
       messages: [
         {
           role: "system",
-          content: `Extract entities from the user query. Focus on these entity types:
-- email: Email addresses
-- phone: Phone numbers
-- date: Dates in any format
-- currency: Money amounts, prices, salaries
-- person: Names of people
-- company: Company or organization names
-- skill: Technical skills, programming languages, tools
-- location: Cities, countries, addresses
+          content: `
+            Extract entities from the user query. Focus on these entity types:
+            - email: Email addresses
+            - phone: Phone numbers
+            - date: Dates in any format
+            - currency: Money amounts, prices, salaries
+            - person: Names of people
+            - company: Company or organization names
+            - skill: Technical skills, programming languages, tools
+            - location: Cities, countries, addresses
 
-Return ONLY a JSON array of entities in this exact format:
-[
-  {
-    "type": "email" | "phone" | "date" | "currency" | "person" | "company" | "skill" | "location",
-    "value": "extracted text",
-    "confidence": 0.0-1.0,
-    "startIndex": number,
-    "endIndex": number
-  }
-]
+            Return ONLY a JSON array of entities in this exact format:
+            [
+              {
+                "type": "email" | "phone" | "date" | "currency" | "person" | "company" | "skill" | "location",
+                "value": "extracted text",
+                "confidence": 0.0-1.0,
+                "startIndex": number,
+                "endIndex": number
+              }
+            ]
 
-If no entities found, return an empty array [].`
+            If no entities found, return an empty array [].
+          `
         },
         {
           role: "user",
@@ -194,17 +197,19 @@ async function analyzeSentiment(query: string): Promise<'positive' | 'neutral' |
       messages: [
         {
           role: "system",
-          content: `Analyze the sentiment of the user query. Return ONLY a JSON object:
-{
-  "sentiment": "positive" | "neutral" | "negative",
-  "confidence": 0.0-1.0,
-  "reasoning": "brief explanation"
-}
+          content: `
+            Analyze the sentiment of the user query. Return ONLY a JSON object:
+            {
+              "sentiment": "positive" | "neutral" | "negative",
+              "confidence": 0.0-1.0,
+              "reasoning": "brief explanation"
+            }
 
-Consider:
-- Overall emotional tone
-- Context and intent
-- Word choices and phrasing`
+            Consider:
+            - Overall emotional tone
+            - Context and intent
+            - Word choices and phrasing
+          `
         },
         {
           role: "user",
