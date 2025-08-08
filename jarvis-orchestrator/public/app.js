@@ -3,7 +3,7 @@ let isWaiting = false;
 let currentSessionId = null;
 let currentUserId = null;
 let chatHistory = [];
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = window.location.origin;
 
 // Session management with proper UUID generation
 function generateUUID() {

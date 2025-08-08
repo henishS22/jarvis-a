@@ -23,6 +23,14 @@ app.use((req, res, next) => {
     });
     next();
 });
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'healthy',
+        service: 'ai-agent-processor',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+    });
+});
 app.get('/api/v1/health', (req, res) => {
     res.json({
         status: 'healthy',
