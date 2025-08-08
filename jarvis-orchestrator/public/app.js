@@ -506,8 +506,14 @@ function addMessage(content, isUser = false, metadata = null, hideWelcome = true
         // Add timestamp - use provided timestamp or current time in browser's local format
         let timestamp;
         if (messageTimestamp) {
-            // Use the actual message timestamp for loaded messages, in browser's local time format
-            const messageDate = new Date(messageTimestamp);
+            // Explicitly handle UTC to local time conversion for loaded messages
+            let messageDate;
+            if (messageTimestamp.includes('T') && !messageTimestamp.includes('Z')) {
+                // If the timestamp doesn't have Z, assume it's UTC and add Z
+                messageDate = new Date(messageTimestamp + (messageTimestamp.includes('+') ? '' : 'Z'));
+            } else {
+                messageDate = new Date(messageTimestamp);
+            }
             timestamp = messageDate.toLocaleTimeString();
         } else {
             // Use current time for new messages in browser's local time format
