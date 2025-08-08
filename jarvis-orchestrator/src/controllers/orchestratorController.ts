@@ -20,6 +20,12 @@ function generateGuestUserId(): string {
   return `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
+// UUID validation function
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
 export async function orchestrate(req: Request, res: Response): Promise<void> {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const startTime = Date.now();
@@ -50,7 +56,11 @@ export async function orchestrate(req: Request, res: Response): Promise<void> {
       const orchestrationRequest: OrchestrationRequest = req.body;
       
       // Generate session and user IDs if not provided (guest mode)
-      const sessionId = orchestrationRequest.sessionId || orchestrationRequest.context?.sessionId || generateSessionId();
+      // Ensure session ID is a valid UUID
+      let sessionId = orchestrationRequest.sessionId || orchestrationRequest.context?.sessionId;
+      if (!sessionId || !isValidUUID(sessionId)) {
+        sessionId = generateSessionId();
+      }
       const userId = orchestrationRequest.userId || orchestrationRequest.context?.userId || generateGuestUserId();
       
       // Store user message in database

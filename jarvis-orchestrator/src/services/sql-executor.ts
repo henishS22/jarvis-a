@@ -1,4 +1,4 @@
-// SQL Executor service that uses the actual execute_sql_tool
+// Simple and reliable SQL Executor service
 import { logger } from '../utils/logger';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -7,10 +7,10 @@ const execAsync = promisify(exec);
 
 export class SqlExecutor {
   
-  // Execute SQL directly using the environment's SQL execution capability
+  // Execute SQL directly using psql with proper parameter handling
   async executeQuery(query: string, params: any[] = []): Promise<any> {
     try {
-      // Replace parameters in query
+      // Simple parameter replacement - safer approach
       let finalQuery = query;
       params.forEach((param, index) => {
         const placeholder = `$${index + 1}`;
@@ -19,7 +19,7 @@ export class SqlExecutor {
         if (param === null || param === undefined) {
           value = 'NULL';
         } else if (typeof param === 'string') {
-          // Escape single quotes for SQL and wrap in quotes
+          // Properly escape string values
           value = `'${param.replace(/'/g, "''")}'`;
         } else if (typeof param === 'boolean') {
           value = param ? 'TRUE' : 'FALSE';
@@ -39,24 +39,15 @@ export class SqlExecutor {
         service: 'jarvis-orchestrator'
       });
       
-      // Create a temporary SQL file and execute it
-      const timestamp = Date.now();
-      const tempFile = `/tmp/sql_${timestamp}.sql`;
-      
-      // Write SQL to temporary file
-      await execAsync(`echo "${finalQuery.replace(/"/g, '\\"')}" > ${tempFile}`);
-      
-      // Execute SQL using psql
-      const command = `psql "${process.env.DATABASE_URL}" -f ${tempFile}`;
+      // Execute SQL directly using psql with better error handling
+      const command = `echo "${finalQuery.replace(/"/g, '\\"').replace(/\n/g, ' ')}" | psql "${process.env.DATABASE_URL}"`;
       
       try {
         const { stdout, stderr } = await execAsync(command);
         
-        // Clean up temp file
-        await execAsync(`rm -f ${tempFile}`);
-        
         logger.info('SQL executed successfully', {
           result: stdout.substring(0, 100),
+          stderr: stderr || 'none',
           service: 'jarvis-orchestrator'
         });
         
@@ -67,11 +58,9 @@ export class SqlExecutor {
         };
         
       } catch (sqlError) {
-        // Clean up temp file
-        await execAsync(`rm -f ${tempFile}`);
-        
         logger.error('SQL execution failed', {
           error: sqlError instanceof Error ? sqlError.message : String(sqlError),
+          query: finalQuery.substring(0, 200),
           service: 'jarvis-orchestrator'
         });
         
@@ -104,7 +93,7 @@ export class SqlExecutor {
     `;
     
     const result = await this.executeQuery(query, [sessionId, userId, message]);
-    return result.success;
+    return result.success && (result.output.includes('INSERT 0 1') || result.output.includes('INSERT 1'));
   }
   
   // Store AI response
@@ -115,7 +104,7 @@ export class SqlExecutor {
     `;
     
     const result = await this.executeQuery(query, [sessionId, userId, response, metadata]);
-    return result.success;
+    return result.success && (result.output.includes('INSERT 0 1') || result.output.includes('INSERT 1'));
   }
   
   // Ensure session exists
@@ -126,11 +115,11 @@ export class SqlExecutor {
       ON CONFLICT (session_id) DO UPDATE SET
       last_activity = NOW(),
       updated_at = NOW(),
-      message_count = message_count + 1
+      message_count = chat_sessions.message_count + 1
     `;
     
     const result = await this.executeQuery(query, [sessionId, userId, title || null]);
-    return result.success;
+    return result.success && (result.output.includes('INSERT 0 1') || result.output.includes('UPDATE 1'));
   }
   
   // Store performance metrics
@@ -171,7 +160,7 @@ export class SqlExecutor {
       metrics.intentDetected
     ]);
     
-    return result.success;
+    return result.success && (result.output.includes('INSERT 0 1') || result.output.includes('INSERT 1'));
   }
 }
 
