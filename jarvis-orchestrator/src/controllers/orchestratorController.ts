@@ -607,7 +607,21 @@ function parseMessagesFromJsonOutput(output: string): any[] {
                 // Check if content starts with JSON-like structure
                 if (content.trim().startsWith('{') && content.trim().endsWith('}')) {
                     try {
-                        const parsed = JSON.parse(content);
+                        // Fix common JSON parsing issues with control characters
+                        let cleanedContent = content
+                            .replace(/\n/g, '\\n')    // Escape actual newlines
+                            .replace(/\r/g, '\\r')    // Escape carriage returns
+                            .replace(/\t/g, '\\t')    // Escape tabs
+                            .replace(/\\/g, '\\\\')   // Escape backslashes
+                            .replace(/"/g, '\\"');    // Escape quotes
+                        
+                        // Re-add proper JSON structure
+                        cleanedContent = content
+                            .replace(/\n/g, '\\n')
+                            .replace(/\r/g, '\\r') 
+                            .replace(/\t/g, '\\t');
+                        
+                        const parsed = JSON.parse(cleanedContent);
                         if (typeof parsed === 'object' && parsed !== null) {
                             // Extract meaningful content from common JSON response formats
                             const possibleKeys = ['content', 'analysis', 'text', 'response', 'message', 'result', 'data'];
@@ -615,7 +629,7 @@ function parseMessagesFromJsonOutput(output: string): any[] {
                             for (const key of possibleKeys) {
                                 if (parsed[key] && typeof parsed[key] === 'string') {
                                     content = parsed[key];
-                                    logger.info('Extracted content from JSON', {
+                                    logger.info('Successfully extracted content from JSON', {
                                         key: key,
                                         contentLength: content.length,
                                         service: 'jarvis-orchestrator'
@@ -625,12 +639,40 @@ function parseMessagesFromJsonOutput(output: string): any[] {
                             }
                         }
                     } catch (e) {
-                        // If parsing fails, keep the original content
-                        logger.warn('Failed to parse assistant content as JSON', {
-                            error: e instanceof Error ? e.message : String(e),
-                            contentPreview: content.substring(0, 100) + '...',
-                            service: 'jarvis-orchestrator'
-                        });
+                        // Try a more aggressive approach for malformed JSON
+                        try {
+                            // Extract content using regex as fallback
+                            const contentMatch = content.match(/"content"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+                            const analysisMatch = content.match(/"analysis"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+                            
+                            if (contentMatch) {
+                                // Unescape the captured content
+                                content = contentMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                                logger.info('Extracted content using regex fallback', {
+                                    contentLength: content.length,
+                                    service: 'jarvis-orchestrator'
+                                });
+                            } else if (analysisMatch) {
+                                // Unescape the captured analysis
+                                content = analysisMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                                logger.info('Extracted analysis using regex fallback', {
+                                    contentLength: content.length,
+                                    service: 'jarvis-orchestrator'
+                                });
+                            } else {
+                                logger.warn('Could not extract content from malformed JSON', {
+                                    error: e instanceof Error ? e.message : String(e),
+                                    contentPreview: content.substring(0, 100) + '...',
+                                    service: 'jarvis-orchestrator'
+                                });
+                            }
+                        } catch (regexError) {
+                            logger.error('Both JSON and regex parsing failed', {
+                                jsonError: e instanceof Error ? e.message : String(e),
+                                regexError: regexError instanceof Error ? regexError.message : String(regexError),
+                                service: 'jarvis-orchestrator'
+                            });
+                        }
                     }
                 } else {
                     logger.info('Content is not JSON format, keeping as-is', {
