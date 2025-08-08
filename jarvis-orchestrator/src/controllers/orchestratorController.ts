@@ -5,10 +5,14 @@ import { processWithAgents } from '../services/agentCommunicator';
 import { logger } from '../utils/logger';
 import { validateOrchestrationRequest } from '../middleware/validation';
 import { OrchestrationRequest, OrchestrationResponse, AgentSelection } from '../types';
+import { databaseStorage } from '../services/database-storage';
+
+// Import crypto for UUID generation
+import { randomUUID } from 'crypto';
 
 // Session management utilities for guest users
 function generateSessionId(): string {
-  return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return randomUUID();
 }
 
 function generateGuestUserId(): string {
@@ -47,6 +51,9 @@ export async function orchestrate(req: Request, res: Response): Promise<void> {
       // Generate session and user IDs if not provided (guest mode)
       const sessionId = orchestrationRequest.sessionId || orchestrationRequest.context?.sessionId || generateSessionId();
       const userId = orchestrationRequest.userId || orchestrationRequest.context?.userId || generateGuestUserId();
+      
+      // Store user message in database
+      await databaseStorage.storeUserMessage(sessionId, userId, orchestrationRequest.query);
       
       // Log session information for tracking
       logger.info('Processing chat session', { 
@@ -122,6 +129,36 @@ export async function orchestrate(req: Request, res: Response): Promise<void> {
         }
       };
 
+      // Store AI response and performance metrics
+      if (agentResults.length > 0) {
+        const mainResult = agentResults[0];
+        const responseContent = typeof mainResult.data === 'string' ? mainResult.data : JSON.stringify(mainResult.data);
+        
+        // Store AI response
+        await databaseStorage.storeAIResponse(sessionId, userId, responseContent, {
+          agentType: mainResult.agentType,
+          aiModel: mainResult.metadata?.aiModel,
+          processingTime,
+          tokensUsed: mainResult.metadata?.tokensUsed
+        });
+        
+        // Store performance metrics
+        await databaseStorage.storePerformanceMetrics({
+          sessionId,
+          userId,
+          agentType: mainResult.agentType,
+          aiService: mainResult.metadata?.aiModel?.includes('claude') ? 'anthropic' : 'openai',
+          aiModel: mainResult.metadata?.aiModel || 'unknown',
+          requestId,
+          queryLength: orchestrationRequest.query.length,
+          responseLength: responseContent.length,
+          processingTime,
+          tokensUsed: mainResult.metadata?.tokensUsed || 0,
+          success: true,
+          intentDetected: nlpAnalysis.intent.category || 'unknown'
+        });
+      }
+      
       logger.info('Orchestration completed successfully', { 
         requestId, 
         agentCount: agentResults.length,
