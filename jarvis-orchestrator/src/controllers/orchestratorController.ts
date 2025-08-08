@@ -145,12 +145,15 @@ export async function orchestrate(req: Request, res: Response): Promise<void> {
         const mainResult = agentResults[0];
         const responseContent = typeof mainResult.data === 'string' ? mainResult.data : JSON.stringify(mainResult.data);
         
-        // Store AI response
+        // Store AI response with complete metadata
         await databaseStorage.storeAIResponse(sessionId, userId, responseContent, {
           agentType: mainResult.agentType,
           aiModel: mainResult.metadata?.aiModel,
           processingTime,
-          tokensUsed: mainResult.metadata?.tokensUsed
+          tokensUsed: mainResult.metadata?.tokensUsed,
+          nlpAnalysis: nlpAnalysis, // Include NLP analysis for intent information
+          agentCount: agentResults.length, // Include agent count
+          timestamp: new Date().toISOString()
         });
         
         // Store performance metrics

@@ -450,32 +450,40 @@ function addMessage(content, isUser = false, metadata = null, hideWelcome = true
             metadataContent += 'Agents: ' + metadata.agentCount + ' | ';
         }
         
-        // Extract model information from results - always show model
-        let modelInfo = 'Auto'; // Default fallback
+        // Extract agent information - check stored metadata first, then response data
         let agentInfo = null;
-        
-        // Try to get model from response data
-        if (content && typeof content === 'object' && content.results && content.results[0]) {
+        if (metadata.agentType) {
+            // For loaded messages - get from stored metadata
+            agentInfo = metadata.agentType.replace('_', ' ');
+            metadataContent += 'Agent: ' + agentInfo + ' | ';
+        } else if (content && typeof content === 'object' && content.results && content.results[0]) {
+            // For live messages - get from response data
             const result = content.results[0];
-            
-            // Extract agent type
             if (result.agentType) {
                 agentInfo = result.agentType.replace('_', ' ');
                 metadataContent += 'Agent: ' + agentInfo + ' | ';
             }
-            
-            // Extract model from metadata
+        }
+        
+        // Extract model information - check stored metadata first, then response data
+        let modelInfo = 'Auto'; // Default fallback
+        const modelMappings = {
+            'claude-sonnet-4-20250514': 'Claude Sonnet 4',
+            'claude-3-7-sonnet-20250219': 'Claude 3.7 Sonnet',
+            'claude-3-5-sonnet-20241022': 'Claude 3.5 Sonnet',
+            'gpt-4o': 'ChatGPT 4.0',
+            'gpt-4': 'ChatGPT 4',
+            'gpt-3.5-turbo': 'ChatGPT 3.5'
+        };
+        
+        if (metadata.aiModel) {
+            // For loaded messages - get from stored metadata
+            modelInfo = modelMappings[metadata.aiModel] || metadata.aiModel;
+        } else if (content && typeof content === 'object' && content.results && content.results[0]) {
+            // For live messages - get from response data
+            const result = content.results[0];
             if (result.metadata && result.metadata.aiModel) {
                 const aiModel = result.metadata.aiModel;
-                // Map technical model names to user-friendly names
-                const modelMappings = {
-                    'claude-sonnet-4-20250514': 'Claude Sonnet 4',
-                    'claude-3-7-sonnet-20250219': 'Claude 3.7 Sonnet',
-                    'claude-3-5-sonnet-20241022': 'Claude 3.5 Sonnet',
-                    'gpt-4o': 'ChatGPT 4.0',
-                    'gpt-4': 'ChatGPT 4',
-                    'gpt-3.5-turbo': 'ChatGPT 3.5'
-                };
                 modelInfo = modelMappings[aiModel] || aiModel;
             }
         }
