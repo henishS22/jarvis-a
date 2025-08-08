@@ -152,6 +152,11 @@ function displayEmptyHistory() {
 
 async function switchToSession(sessionId) {
     try {
+        if (sessionId === currentSessionId) {
+            console.log('Already on this session:', sessionId);
+            return;
+        }
+        
         currentSessionId = sessionId;
         localStorage.setItem('jarvis_session_id', sessionId);
         
@@ -166,8 +171,13 @@ async function switchToSession(sessionId) {
             item.classList.remove('active');
         });
         
+        // Find and activate the correct item by matching session ID
         const activeItem = Array.from(document.querySelectorAll('.chat-history-item'))
-            .find(item => item.innerHTML.includes(sessionId));
+            .find(item => {
+                // Get the session from chatHistory by matching position
+                const itemIndex = Array.from(item.parentNode.children).indexOf(item);
+                return chatHistory[itemIndex] && chatHistory[itemIndex].session_id === sessionId;
+            });
         if (activeItem) {
             activeItem.classList.add('active');
         }
@@ -175,11 +185,14 @@ async function switchToSession(sessionId) {
         console.log('Switched to session:', sessionId);
     } catch (error) {
         console.error('Error switching session:', error);
+        addMessage('Sorry, failed to load this conversation. Please try again.', false);
     }
 }
 
 async function loadSessionMessages(sessionId) {
     try {
+        console.log('Loading messages for session:', sessionId);
+        
         const response = await fetch(`${API_BASE_URL}/api/v1/chat-messages?sessionId=${sessionId}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
@@ -187,12 +200,32 @@ async function loadSessionMessages(sessionId) {
 
         if (response.ok) {
             const data = await response.json();
+            console.log('Received messages data:', data);
+            
             const messages = data.messages || [];
             
             const messagesContainer = document.getElementById('messagesContainer');
             messagesContainer.innerHTML = '';
             
-            messages.forEach(message => {
+            if (messages.length === 0) {
+                console.log('No messages found for session:', sessionId);
+                showWelcomeScreen();
+                return;
+            }
+            
+            // Sort messages by created_at to ensure proper order
+            messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            
+            console.log('Loading', messages.length, 'messages in chronological order');
+            
+            // Display all messages in chronological order
+            messages.forEach((message, index) => {
+                console.log(`Loading message ${index + 1}:`, {
+                    role: message.role,
+                    content: message.content.substring(0, 50) + '...',
+                    timestamp: message.created_at
+                });
+                
                 addMessage(
                     message.content, 
                     message.role === 'user',
@@ -201,11 +234,15 @@ async function loadSessionMessages(sessionId) {
                 );
             });
             
-            if (messages.length === 0) {
-                showWelcomeScreen();
-            }
+            // Scroll to bottom to show latest messages
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+            
         } else {
-            console.warn('Failed to load session messages:', response.status);
+            console.warn('Failed to load session messages:', response.status, response.statusText);
+            const errorData = await response.text();
+            console.warn('Error response:', errorData);
             showWelcomeScreen();
         }
     } catch (error) {

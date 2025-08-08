@@ -297,7 +297,17 @@ export async function getChatMessages(req: Request, res: Response): Promise<void
             timestamp: new Date().toISOString()
         });
 
-        // Query to get messages for the session
+        // Validate session ID format
+        if (!isValidUUID(sessionId)) {
+            res.status(400).json({
+                error: 'Bad Request',
+                message: 'Invalid session ID format',
+                timestamp: new Date().toISOString()
+            });
+            return;
+        }
+        
+        // Query to get recent messages for the session (at least 5 if available)
         const query = `
             SELECT 
                 message_id,
@@ -310,7 +320,7 @@ export async function getChatMessages(req: Request, res: Response): Promise<void
             FROM chat_messages
             WHERE session_id = CAST($1 AS UUID)
             ORDER BY created_at ASC
-            LIMIT 100
+            LIMIT 50
         `;
 
         const result = await sqlExecutor.executeQuery(query, [sessionId]);
@@ -355,54 +365,121 @@ export async function getChatMessages(req: Request, res: Response): Promise<void
 // Helper functions to parse SQL output
 function parseSessionsFromOutput(output: string): any[] {
     try {
-        // This is a simplified parser - in production you'd want more robust parsing
-        const lines = output.split('\n').filter(line => line.trim() && !line.includes('---') && !line.includes('row'));
+        const lines = output.split('\n').filter(line => line.trim());
         const sessions = [];
         
-        for (const line of lines) {
-            if (line.includes('|')) {
+        let headerFound = false;
+        let dataStarted = false;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            
+            // Skip empty lines
+            if (!line) continue;
+            
+            // Find header line
+            if (line.includes('session_id') && line.includes('title')) {
+                headerFound = true;
+                continue;
+            }
+            
+            // Skip separator line
+            if (headerFound && line.includes('---')) {
+                dataStarted = true;
+                continue;
+            }
+            
+            // Skip result count lines
+            if (line.includes('(') && line.includes('row')) {
+                break;
+            }
+            
+            // Parse data lines
+            if (dataStarted && line.includes('|')) {
                 const parts = line.split('|').map(part => part.trim());
-                if (parts.length >= 6) {
-                    sessions.push({
+                if (parts.length >= 7) {
+                    const session = {
                         session_id: parts[0],
-                        title: parts[1] || 'New Conversation',
+                        title: parts[1] && parts[1] !== '' ? parts[1] : 'New Conversation',
                         created_at: parts[2],
-                        updated_at: parts[3], 
+                        updated_at: parts[3],
                         last_activity: parts[4],
                         message_count: parseInt(parts[5]) || 0,
-                        last_message: parts[6] || ''
-                    });
+                        last_message: parts[6] && parts[6] !== '' ? parts[6] : 'No messages yet'
+                    };
+                    
+                    // Only add if session_id is valid
+                    if (session.session_id && isValidUUID(session.session_id)) {
+                        sessions.push(session);
+                    }
                 }
             }
         }
         
+        logger.info('Parsed sessions successfully', {
+            sessionCount: sessions.length,
+            service: 'jarvis-orchestrator'
+        });
+        
         return sessions;
     } catch (error) {
-        logger.warn('Failed to parse sessions output', { error: error instanceof Error ? error.message : String(error) });
+        logger.warn('Failed to parse sessions output', { 
+            error: error instanceof Error ? error.message : String(error),
+            service: 'jarvis-orchestrator'
+        });
         return [];
     }
 }
 
 function parseMessagesFromOutput(output: string): any[] {
     try {
-        // This is a simplified parser - in production you'd want more robust parsing
-        const lines = output.split('\n').filter(line => line.trim() && !line.includes('---') && !line.includes('row'));
+        const lines = output.split('\n').filter(line => line.trim());
         const messages = [];
         
-        for (const line of lines) {
-            if (line.includes('|')) {
+        let headerFound = false;
+        let dataStarted = false;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            
+            // Skip empty lines
+            if (!line) continue;
+            
+            // Find header line
+            if (line.includes('message_id') && line.includes('session_id')) {
+                headerFound = true;
+                continue;
+            }
+            
+            // Skip separator line
+            if (headerFound && line.includes('---')) {
+                dataStarted = true;
+                continue;
+            }
+            
+            // Skip result count lines
+            if (line.includes('(') && line.includes('row')) {
+                break;
+            }
+            
+            // Parse data lines
+            if (dataStarted && line.includes('|')) {
                 const parts = line.split('|').map(part => part.trim());
-                if (parts.length >= 6) {
+                if (parts.length >= 7) {
                     let metadata = null;
                     try {
-                        if (parts[5] && parts[5] !== '') {
+                        if (parts[5] && parts[5] !== '' && parts[5] !== 'null') {
                             metadata = JSON.parse(parts[5]);
                         }
                     } catch (e) {
                         // Ignore metadata parsing errors
+                        logger.warn('Failed to parse message metadata', {
+                            metadata: parts[5],
+                            service: 'jarvis-orchestrator'
+                        });
                     }
                     
-                    messages.push({
+                    const message = {
                         message_id: parts[0],
                         session_id: parts[1],
                         user_id: parts[2],
@@ -410,14 +487,27 @@ function parseMessagesFromOutput(output: string): any[] {
                         content: parts[4],
                         metadata,
                         created_at: parts[6]
-                    });
+                    };
+                    
+                    // Only add if essential fields are present
+                    if (message.message_id && message.role && message.content) {
+                        messages.push(message);
+                    }
                 }
             }
         }
         
+        logger.info('Parsed messages successfully', {
+            messageCount: messages.length,
+            service: 'jarvis-orchestrator'
+        });
+        
         return messages;
     } catch (error) {
-        logger.warn('Failed to parse messages output', { error: error instanceof Error ? error.message : String(error) });
+        logger.warn('Failed to parse messages output', { 
+            error: error instanceof Error ? error.message : String(error),
+            service: 'jarvis-orchestrator'
+        });
         return [];
     }
 }
