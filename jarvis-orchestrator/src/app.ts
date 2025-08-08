@@ -41,9 +41,15 @@ app.get("/", (req, res) => {
         }
 
         body {
+<<<<<<< HEAD
             font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
             background: #212121;
             color: #ececf1;
+=======
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             height: 100vh;
             overflow: hidden;
         }
@@ -58,9 +64,16 @@ app.get("/", (req, res) => {
         }
 
         .header {
+<<<<<<< HEAD
             padding: 12px 16px;
             background: #212121;
             border-bottom: 1px solid #565869;
+=======
+            padding: 16px 20px;
+            background: rgba(26, 26, 26, 0.95);
+            border-bottom: 1px solid #333333;
+            backdrop-filter: blur(10px);
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             position: sticky;
             top: 0;
             z-index: 100;
@@ -71,7 +84,14 @@ app.get("/", (req, res) => {
             font-weight: 600;
             color: #f7f7f8;
             text-align: center;
+<<<<<<< HEAD
             margin: 0;
+=======
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
         }
 
         .messages-container {
@@ -95,7 +115,11 @@ app.get("/", (req, res) => {
             width: 64px;
             height: 64px;
             border-radius: 50%;
+<<<<<<< HEAD
             background: #10a37f;
+=======
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             display: flex;
             align-items: center;
             justify-content: center;
@@ -105,10 +129,19 @@ app.get("/", (req, res) => {
 
         .welcome-title {
             font-size: 32px;
+<<<<<<< HEAD
             font-weight: 400;
             margin-bottom: 8px;
             color: #f7f7f8;
             line-height: 1.2;
+=======
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
         }
 
         .welcome-subtitle {
@@ -128,6 +161,7 @@ app.get("/", (req, res) => {
         }
 
         .agent-pill {
+<<<<<<< HEAD
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid #565869;
             color: #ececf1;
@@ -135,6 +169,15 @@ app.get("/", (req, res) => {
             border-radius: 12px;
             font-size: 13px;
             font-weight: 400;
+=======
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: #00d4ff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
         }
 
         .message {
@@ -160,12 +203,20 @@ app.get("/", (req, res) => {
         }
 
         .message.user .message-avatar {
+<<<<<<< HEAD
             background: #5436da;
+=======
+            background: #404040;
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             color: white;
         }
 
         .message.assistant .message-avatar {
+<<<<<<< HEAD
             background: #10a37f;
+=======
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             color: white;
         }
 
@@ -175,7 +226,7 @@ app.get("/", (req, res) => {
         }
 
         .message.user .message-content {
-            background: #2f2f2f;
+            background: #333333;
             padding: 12px 16px;
             border-radius: 18px 18px 6px 18px;
             color: #ececf1;
@@ -207,9 +258,15 @@ app.get("/", (req, res) => {
         }
 
         .typing-dots span {
+<<<<<<< HEAD
             width: 4px;
             height: 4px;
             background: #10a37f;
+=======
+            width: 6px;
+            height: 6px;
+            background: #00d4ff;
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             border-radius: 50%;
             animation: typing 1.4s infinite;
         }
@@ -223,9 +280,16 @@ app.get("/", (req, res) => {
         }
 
         .input-container {
+<<<<<<< HEAD
             padding: 16px 16px 24px 16px;
             background: #212121;
             border-top: 1px solid #565869;
+=======
+            padding: 20px;
+            background: rgba(26, 26, 26, 0.95);
+            border-top: 1px solid #333333;
+            backdrop-filter: blur(10px);
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
         }
 
         .input-wrapper {
@@ -251,7 +315,11 @@ app.get("/", (req, res) => {
         }
 
         .input-field:focus {
+<<<<<<< HEAD
             border-color: #10a37f;
+=======
+            border-color: #00d4ff;
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
         }
 
         .input-field::placeholder {
@@ -265,7 +333,11 @@ app.get("/", (req, res) => {
             transform: translateY(-50%);
             width: 32px;
             height: 32px;
+<<<<<<< HEAD
             background: #ececf1;
+=======
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             border: none;
             border-radius: 6px;
             color: #202123;
@@ -288,10 +360,17 @@ app.get("/", (req, res) => {
 
         .metadata {
             font-size: 12px;
+<<<<<<< HEAD
             color: #8e8ea0;
             margin-top: 8px;
             padding-top: 8px;
             border-top: 1px solid #565869;
+=======
+            color: #888;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #444;
+>>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
         }
 
         /* Scrollbar styling */
