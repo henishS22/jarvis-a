@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import * as dotenv from "dotenv";
 import path from "path";
-import { orchestrate } from "./controllers/orchestratorController";
+import { orchestrate, getChatHistory, getChatMessages } from "./controllers/orchestratorController";
 import { logger } from "./utils/logger";
 
 dotenv.config();
@@ -47,6 +47,8 @@ app.get("/health", (req, res) => {
 
 // API Routes
 app.post("/api/v1/orchestrate", orchestrate);
+app.get("/api/v1/chat-history", getChatHistory);
+app.get("/api/v1/chat-messages", getChatMessages);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

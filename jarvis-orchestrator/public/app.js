@@ -1,6 +1,9 @@
 // JARVIS AI Frontend Application
 let isWaiting = false;
-const API_BASE_URL = 'http://localhost:5000'; // Adjust this to your backend URL
+let currentSessionId = null;
+let currentUserId = null;
+let chatHistory = [];
+const API_BASE_URL = 'http://localhost:5000';
 
 // Session management with proper UUID generation
 function generateUUID() {
@@ -11,21 +14,266 @@ function generateUUID() {
 }
 
 function getOrCreateSessionId() {
-    let sessionId = localStorage.getItem('jarvis_session_id');
-    if (!sessionId) {
-        sessionId = generateUUID();
-        localStorage.setItem('jarvis_session_id', sessionId);
+    if (!currentSessionId) {
+        currentSessionId = localStorage.getItem('jarvis_session_id');
+        if (!currentSessionId) {
+            currentSessionId = generateUUID();
+            localStorage.setItem('jarvis_session_id', currentSessionId);
+        }
     }
-    return sessionId;
+    return currentSessionId;
 }
 
 function getOrCreateUserId() {
-    let userId = localStorage.getItem('jarvis_user_id');
-    if (!userId) {
-        userId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('jarvis_user_id', userId);
+    if (!currentUserId) {
+        currentUserId = localStorage.getItem('jarvis_user_id');
+        if (!currentUserId) {
+            currentUserId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('jarvis_user_id', currentUserId);
+        }
     }
-    return userId;
+    return currentUserId;
+}
+
+// Chat History Management
+function createNewChat() {
+    // Generate new session ID
+    currentSessionId = generateUUID();
+    localStorage.setItem('jarvis_session_id', currentSessionId);
+    
+    // Clear current chat
+    clearCurrentChat();
+    
+    // Show welcome screen
+    showWelcomeScreen();
+    
+    // Update chat history list
+    loadChatHistory();
+    
+    console.log('New chat created:', currentSessionId);
+}
+
+function clearCurrentChat() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    messagesContainer.innerHTML = '';
+}
+
+function showWelcomeScreen() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    messagesContainer.innerHTML = `
+        <div class="welcome-screen" id="welcomeScreen">
+            <div class="welcome-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+                    <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/>
+                </svg>
+            </div>
+            <div class="welcome-title">How can I help you today?</div>
+            <div class="welcome-subtitle">I'm JARVIS, your AI assistant with specialized agents for recruitment and content creation.</div>
+            <div class="agent-pills">
+                <div class="agent-pill">Recruitment</div>
+                <div class="agent-pill">Content Creation</div>
+                <div class="agent-pill">CRM Management</div>
+                <div class="agent-pill">Project Management</div>
+                <div class="agent-pill">Treasury</div>
+            </div>
+        </div>
+    `;
+}
+
+async function loadChatHistory() {
+    try {
+        const userId = getOrCreateUserId();
+        const response = await fetch(`${API_BASE_URL}/api/v1/chat-history?userId=${userId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            chatHistory = data.sessions || [];
+            displayChatHistory();
+        } else {
+            console.warn('Failed to load chat history:', response.status);
+            displayEmptyHistory();
+        }
+    } catch (error) {
+        console.warn('Error loading chat history:', error);
+        displayEmptyHistory();
+    }
+}
+
+function displayChatHistory() {
+    const chatHistoryList = document.getElementById('chatHistoryList');
+    
+    if (!chatHistory || chatHistory.length === 0) {
+        displayEmptyHistory();
+        return;
+    }
+
+    chatHistoryList.innerHTML = '';
+    
+    chatHistory.forEach(session => {
+        const item = document.createElement('div');
+        item.className = 'chat-history-item';
+        if (session.session_id === currentSessionId) {
+            item.classList.add('active');
+        }
+        
+        const title = session.title || 'New Conversation';
+        const lastMessage = session.last_message || 'No messages yet';
+        const timestamp = formatTimestamp(session.last_activity || session.created_at);
+        
+        item.innerHTML = `
+            <h3>${escapeHtml(title)}</h3>
+            <p>${escapeHtml(lastMessage.substring(0, 60))}${lastMessage.length > 60 ? '...' : ''}</p>
+            <div class="timestamp">${timestamp}</div>
+        `;
+        
+        item.addEventListener('click', () => {
+            switchToSession(session.session_id);
+        });
+        
+        chatHistoryList.appendChild(item);
+    });
+}
+
+function displayEmptyHistory() {
+    const chatHistoryList = document.getElementById('chatHistoryList');
+    chatHistoryList.innerHTML = `
+        <div class="no-history">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M8 6l4-4 4 4"/>
+                <path d="M12 2v10.3a4 4 0 0 1-1.172 2.828L4 22"/>
+            </svg>
+            <p>Start a conversation to see your chat history</p>
+        </div>
+    `;
+}
+
+async function switchToSession(sessionId) {
+    try {
+        currentSessionId = sessionId;
+        localStorage.setItem('jarvis_session_id', sessionId);
+        
+        // Clear current messages
+        clearCurrentChat();
+        
+        // Load messages for this session
+        await loadSessionMessages(sessionId);
+        
+        // Update active item in history
+        document.querySelectorAll('.chat-history-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        const activeItem = Array.from(document.querySelectorAll('.chat-history-item'))
+            .find(item => item.innerHTML.includes(sessionId));
+        if (activeItem) {
+            activeItem.classList.add('active');
+        }
+        
+        console.log('Switched to session:', sessionId);
+    } catch (error) {
+        console.error('Error switching session:', error);
+    }
+}
+
+async function loadSessionMessages(sessionId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/chat-messages?sessionId=${sessionId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const messages = data.messages || [];
+            
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = '';
+            
+            messages.forEach(message => {
+                addMessage(
+                    message.content, 
+                    message.role === 'user',
+                    message.metadata || null,
+                    false // Don't hide welcome screen for loaded messages
+                );
+            });
+            
+            if (messages.length === 0) {
+                showWelcomeScreen();
+            }
+        } else {
+            console.warn('Failed to load session messages:', response.status);
+            showWelcomeScreen();
+        }
+    } catch (error) {
+        console.error('Error loading session messages:', error);
+        showWelcomeScreen();
+    }
+}
+
+// Sidebar toggle functionality
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    
+    if (window.innerWidth <= 768) {
+        // Mobile: toggle sidebar
+        sidebar.classList.toggle('open');
+        
+        if (!overlay) {
+            const overlayDiv = document.createElement('div');
+            overlayDiv.className = 'sidebar-overlay';
+            overlayDiv.addEventListener('click', closeSidebar);
+            document.body.appendChild(overlayDiv);
+        }
+        
+        if (sidebar.classList.contains('open')) {
+            document.querySelector('.sidebar-overlay').classList.add('active');
+        } else {
+            document.querySelector('.sidebar-overlay').classList.remove('active');
+        }
+    }
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    
+    sidebar.classList.remove('open');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+}
+
+// Utility functions
+function formatTimestamp(timestamp) {
+    try {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+            return 'Today';
+        } else if (diffDays === 2) {
+            return 'Yesterday';
+        } else if (diffDays <= 7) {
+            return `${diffDays} days ago`;
+        } else {
+            return date.toLocaleDateString();
+        }
+    } catch (error) {
+        return 'Recently';
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 function hideWelcomeScreen() {
@@ -35,8 +283,10 @@ function hideWelcomeScreen() {
     }
 }
 
-function addMessage(content, isUser = false, metadata = null) {
-    hideWelcomeScreen();
+function addMessage(content, isUser = false, metadata = null, hideWelcome = true) {
+    if (hideWelcome) {
+        hideWelcomeScreen();
+    }
 
     const messagesContainer = document.getElementById('messagesContainer');
     const messageDiv = document.createElement('div');
@@ -242,6 +492,11 @@ async function sendMessage() {
 
         if (response.ok) {
             addMessage(data, false, data.metadata);
+            
+            // Refresh chat history to show this conversation
+            setTimeout(() => {
+                loadChatHistory();
+            }, 1000);
         } else {
             addMessage('Sorry, I encountered an error processing your request. Please try again.', false);
         }
@@ -267,6 +522,8 @@ function autoResize() {
 document.addEventListener('DOMContentLoaded', function() {
     const input = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const sidebarToggle = document.getElementById('sidebarToggle');
 
     // Handle send button click
     sendButton.addEventListener('click', sendMessage);
@@ -282,9 +539,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto resize textarea
     input.addEventListener('input', autoResize);
 
-    // Initialize session
+    // New chat button
+    newChatBtn.addEventListener('click', createNewChat);
+
+    // Sidebar toggle for mobile
+    sidebarToggle.addEventListener('click', toggleSidebar);
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            
+            if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                closeSidebar();
+            }
+        }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+            closeSidebar();
+        }
+    });
+
+    // Initialize session and load data
     getOrCreateSessionId();
     getOrCreateUserId();
+    loadChatHistory();
     
     console.log('JARVIS Frontend initialized');
     console.log('Session ID:', getOrCreateSessionId());
