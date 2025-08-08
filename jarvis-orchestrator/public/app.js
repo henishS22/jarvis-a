@@ -507,10 +507,13 @@ function addMessage(content, isUser = false, metadata = null, hideWelcome = true
         let timestamp;
         if (messageTimestamp) {
             // Use the actual message timestamp for loaded messages
+            console.log('Using message timestamp:', messageTimestamp);
             const messageDate = new Date(messageTimestamp);
             timestamp = messageDate.toLocaleTimeString();
+            console.log('Formatted timestamp:', timestamp);
         } else {
             // Use current time for new messages
+            console.log('Using current time for timestamp');
             timestamp = new Date().toLocaleTimeString();
         }
         metadataContent += timestamp;
