@@ -479,12 +479,43 @@ function parseMessagesFromOutput(output: string): any[] {
                         });
                     }
                     
+                    // Clean and parse content, especially for assistant messages
+                    let content = parts[4];
+                    
+                    // For assistant messages, the content might be escaped JSON - clean it up
+                    if (parts[3] === 'assistant' && content && content.startsWith('"') && content.endsWith('"')) {
+                        // Remove outer quotes and unescape internal quotes
+                        content = content.slice(1, -1).replace(/""/g, '"');
+                        
+                        // Try to parse as JSON and extract the actual content
+                        try {
+                            const parsed = JSON.parse(content);
+                            if (typeof parsed === 'object' && parsed !== null) {
+                                // Extract meaningful content from common JSON response formats
+                                const possibleKeys = ['content', 'analysis', 'text', 'response', 'message', 'result', 'data'];
+                                
+                                for (const key of possibleKeys) {
+                                    if (parsed[key] && typeof parsed[key] === 'string') {
+                                        content = parsed[key];
+                                        break;
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            // If parsing fails, keep the cleaned content
+                            logger.warn('Failed to parse assistant message content as JSON', {
+                                content: content.substring(0, 100) + '...',
+                                service: 'jarvis-orchestrator'
+                            });
+                        }
+                    }
+                    
                     const message = {
                         message_id: parts[0],
                         session_id: parts[1],
                         user_id: parts[2],
                         role: parts[3],
-                        content: parts[4],
+                        content: content,
                         metadata,
                         created_at: parts[6]
                     };

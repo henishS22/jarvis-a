@@ -315,22 +315,28 @@ function formatTimestamp(timestamp) {
 
 function parseAssistantContent(content) {
     try {
-        // If it's already a regular string, return as is
-        if (typeof content === 'string' && !content.startsWith('{')) {
+        // If content is already a clean string (not JSON), return as is
+        if (typeof content === 'string' && !content.trim().startsWith('{')) {
             return content;
         }
         
-        // Try to parse as JSON
-        const parsed = JSON.parse(content);
+        // Handle escaped JSON content that might come from database
+        let cleanContent = content;
+        if (typeof content === 'string' && content.startsWith('"{') && content.endsWith('}"')) {
+            // Remove outer quotes and unescape internal quotes
+            cleanContent = content.slice(1, -1).replace(/""/g, '"');
+        }
         
-        // Extract meaningful content from common JSON response formats
+        // Try to parse as JSON and extract meaningful content
+        const parsed = JSON.parse(cleanContent);
+        
         if (typeof parsed === 'object' && parsed !== null) {
             // Try different common keys in order of preference
             const possibleKeys = ['content', 'analysis', 'text', 'response', 'message', 'result', 'data'];
             
             for (const key of possibleKeys) {
                 if (parsed[key] && typeof parsed[key] === 'string') {
-                    console.log(`Extracted ${key} from assistant message:`, parsed[key].substring(0, 100) + '...');
+                    console.log(`Frontend: Extracted ${key} from assistant message`);
                     return parsed[key];
                 }
             }
@@ -338,7 +344,7 @@ function parseAssistantContent(content) {
             // If no common keys found, try to find the first string value
             for (const [key, value] of Object.entries(parsed)) {
                 if (typeof value === 'string' && value.length > 0) {
-                    console.log(`Extracted ${key} from assistant message:`, value.substring(0, 100) + '...');
+                    console.log(`Frontend: Extracted ${key} from assistant message`);
                     return value;
                 }
             }
@@ -347,10 +353,10 @@ function parseAssistantContent(content) {
             return JSON.stringify(parsed, null, 2);
         }
         
-        return content;
+        return cleanContent;
     } catch (error) {
         // If parsing fails, return the original content
-        console.log('Failed to parse assistant content as JSON, using as-is:', error);
+        console.log('Frontend: Failed to parse assistant content, using as-is:', error);
         return content;
     }
 }
