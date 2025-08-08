@@ -236,7 +236,8 @@ async function loadSessionMessages(sessionId) {
                     messageContent, 
                     message.role === 'user',
                     message.metadata || null,
-                    false // Don't hide welcome screen for loaded messages
+                    false, // Don't hide welcome screen for loaded messages
+                    message.created_at // Pass the actual message timestamp
                 );
             });
             
@@ -374,7 +375,7 @@ function hideWelcomeScreen() {
     }
 }
 
-function addMessage(content, isUser = false, metadata = null, hideWelcome = true) {
+function addMessage(content, isUser = false, metadata = null, hideWelcome = true, messageTimestamp = null) {
     if (hideWelcome) {
         hideWelcomeScreen();
     }
@@ -502,8 +503,16 @@ function addMessage(content, isUser = false, metadata = null, hideWelcome = true
         
         metadataContent += 'Model: ' + modelInfo + ' | ';
         
-        // Add timestamp
-        const timestamp = new Date().toLocaleTimeString();
+        // Add timestamp - use provided timestamp or current time
+        let timestamp;
+        if (messageTimestamp) {
+            // Use the actual message timestamp for loaded messages
+            const messageDate = new Date(messageTimestamp);
+            timestamp = messageDate.toLocaleTimeString();
+        } else {
+            // Use current time for new messages
+            timestamp = new Date().toLocaleTimeString();
+        }
         metadataContent += timestamp;
         
         // Remove trailing separator if exists
