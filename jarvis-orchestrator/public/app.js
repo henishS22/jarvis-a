@@ -506,15 +506,22 @@ function addMessage(content, isUser = false, metadata = null, hideWelcome = true
         // Add timestamp - use provided timestamp or current time
         let timestamp;
         if (messageTimestamp) {
-            // Use the actual message timestamp for loaded messages
-            console.log('Using message timestamp:', messageTimestamp);
+            // Use the actual message timestamp for loaded messages, convert to local time
             const messageDate = new Date(messageTimestamp);
-            timestamp = messageDate.toLocaleTimeString();
-            console.log('Formatted timestamp:', timestamp);
+            timestamp = messageDate.toLocaleTimeString(undefined, {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
         } else {
             // Use current time for new messages
-            console.log('Using current time for timestamp');
-            timestamp = new Date().toLocaleTimeString();
+            timestamp = new Date().toLocaleTimeString(undefined, {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
         }
         metadataContent += timestamp;
         
