@@ -1,8 +1,8 @@
-import express from 'express';
-import cors from 'cors';
-import * as dotenv from 'dotenv';
-import { orchestrate } from './controllers/orchestratorController';
-import { logger } from './utils/logger';
+import express from "express";
+import cors from "cors";
+import * as dotenv from "dotenv";
+import { orchestrate } from "./controllers/orchestratorController";
+import { logger } from "./utils/logger";
 
 dotenv.config();
 
@@ -11,21 +11,21 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
     logger.info(`${req.method} ${req.path}`, {
-        userAgent: req.get('User-Agent'),
+        userAgent: req.get("User-Agent"),
         ip: req.ip,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     });
     next();
 });
 
 // Main web interface
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
     res.send(`
 <!DOCTYPE html>
 <html lang="en">
@@ -42,7 +42,7 @@ app.get('/', (req, res) => {
 
         body {
             font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-            background: #343541;
+            background: #212121;
             color: #ececf1;
             height: 100vh;
             overflow: hidden;
@@ -59,7 +59,7 @@ app.get('/', (req, res) => {
 
         .header {
             padding: 12px 16px;
-            background: #343541;
+            background: #212121;
             border-bottom: 1px solid #565869;
             position: sticky;
             top: 0;
@@ -67,15 +67,17 @@ app.get('/', (req, res) => {
         }
 
         .header h1 {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
-            color: #ececf1;
+            color: #f7f7f8;
             text-align: center;
+            margin: 0;
         }
 
         .messages-container {
             flex: 1;
             overflow-y: auto;
+            padding: 0 20px;
             scroll-behavior: smooth;
         }
 
@@ -86,51 +88,75 @@ app.get('/', (req, res) => {
             align-items: center;
             height: 100%;
             text-align: center;
-            padding: 48px 16px;
+            padding: 40px 20px;
+        }
+
+        .welcome-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #10a37f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 32px;
+            font-size: 28px;
         }
 
         .welcome-title {
             font-size: 32px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #ececf1;
+            font-weight: 400;
+            margin-bottom: 8px;
+            color: #f7f7f8;
+            line-height: 1.2;
         }
 
         .welcome-subtitle {
             font-size: 16px;
-            color: #c5c5d2;
+            color: #b4b4b4;
             margin-bottom: 32px;
             line-height: 1.5;
-            max-width: 400px;
+            font-weight: 400;
+        }
+
+        .agent-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .agent-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #565869;
+            color: #ececf1;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 400;
         }
 
         .message {
-            border-bottom: 1px solid #565869;
-            padding: 24px 16px;
+            margin: 24px 0;
+            display: flex;
+            gap: 12px;
         }
 
-        .message-content {
-            max-width: 768px;
-            margin: 0 auto;
-            display: flex;
-            gap: 16px;
+        .message.user {
+            flex-direction: row-reverse;
         }
 
         .message-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 2px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
             font-size: 14px;
-            margin-top: 4px;
-        }
-
-        .message.user {
-            background: #444654;
         }
 
         .message.user .message-avatar {
@@ -139,56 +165,51 @@ app.get('/', (req, res) => {
         }
 
         .message.assistant .message-avatar {
-            background: #19c37d;
+            background: #10a37f;
             color: white;
         }
 
-        .message-text {
+        .message-content {
             flex: 1;
-            line-height: 1.75;
+            max-width: 70%;
+        }
+
+        .message.user .message-content {
+            background: #2f2f2f;
+            padding: 12px 16px;
+            border-radius: 18px 18px 6px 18px;
+            color: #ececf1;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .message.assistant .message-content {
+            background: transparent;
+            padding: 0;
+            line-height: 1.7;
             color: #ececf1;
             font-size: 16px;
         }
 
-        .message.user .message-text {
-            color: #ececf1;
-        }
-
         .thinking {
-            border-bottom: 1px solid #565869;
-            padding: 24px 16px;
-        }
-
-        .thinking .message-content {
-            max-width: 768px;
-            margin: 0 auto;
-            display: flex;
-            gap: 16px;
-        }
-
-        .thinking .message-avatar {
-            background: #19c37d;
-            color: white;
-        }
-
-        .thinking-text {
-            flex: 1;
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #c5c5d2;
-            font-style: italic;
+            color: #b4b4b4;
+            font-style: normal;
+            padding: 8px 0;
+            font-size: 14px;
         }
 
         .typing-dots {
             display: flex;
-            gap: 4px;
+            gap: 2px;
         }
 
         .typing-dots span {
             width: 4px;
             height: 4px;
-            background: #c5c5d2;
+            background: #10a37f;
             border-radius: 50%;
             animation: typing 1.4s infinite;
         }
@@ -197,19 +218,19 @@ app.get('/', (req, res) => {
         .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 
         @keyframes typing {
-            0%, 60%, 100% { opacity: 0.25; }
-            30% { opacity: 1; }
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
         }
 
         .input-container {
-            padding: 12px 16px 24px;
-            background: #343541;
+            padding: 16px 16px 24px 16px;
+            background: #212121;
+            border-top: 1px solid #565869;
         }
 
         .input-wrapper {
             position: relative;
-            max-width: 768px;
-            margin: 0 auto;
+            max-width: 100%;
         }
 
         .input-field {
@@ -217,7 +238,7 @@ app.get('/', (req, res) => {
             background: #40414f;
             border: 1px solid #565869;
             border-radius: 12px;
-            padding: 12px 48px 12px 16px;
+            padding: 12px 50px 12px 16px;
             font-size: 16px;
             color: #ececf1;
             resize: none;
@@ -226,12 +247,11 @@ app.get('/', (req, res) => {
             outline: none;
             transition: border-color 0.2s ease;
             font-family: inherit;
-            line-height: 24px;
+            line-height: 1.5;
         }
 
         .input-field:focus {
-            border-color: #565869;
-            box-shadow: 0 0 0 2px rgba(86, 88, 105, 0.1);
+            border-color: #10a37f;
         }
 
         .input-field::placeholder {
@@ -241,13 +261,14 @@ app.get('/', (req, res) => {
         .send-button {
             position: absolute;
             right: 8px;
-            bottom: 8px;
+            top: 50%;
+            transform: translateY(-50%);
             width: 32px;
             height: 32px;
             background: #ececf1;
             border: none;
             border-radius: 6px;
-            color: #343541;
+            color: #202123;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -256,26 +277,26 @@ app.get('/', (req, res) => {
         }
 
         .send-button:hover:not(:disabled) {
-            background: #d1d5db;
+            background: #d9d9e3;
         }
 
         .send-button:disabled {
             background: #565869;
-            color: #8e8ea0;
+            color: #40414f;
             cursor: not-allowed;
         }
 
         .metadata {
             font-size: 12px;
             color: #8e8ea0;
-            margin-top: 12px;
-            padding-top: 12px;
+            margin-top: 8px;
+            padding-top: 8px;
             border-top: 1px solid #565869;
         }
 
         /* Scrollbar styling */
         .messages-container::-webkit-scrollbar {
-            width: 8px;
+            width: 4px;
         }
 
         .messages-container::-webkit-scrollbar-track {
@@ -284,32 +305,28 @@ app.get('/', (req, res) => {
 
         .messages-container::-webkit-scrollbar-thumb {
             background: #565869;
-            border-radius: 4px;
+            border-radius: 2px;
         }
 
         .messages-container::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
+            background: #676767;
         }
 
         @media (max-width: 640px) {
+            .chat-container {
+                height: 100vh;
+            }
+
             .header {
                 padding: 12px 16px;
             }
-            
-            .message {
-                padding: 20px 12px;
+
+            .messages-container {
+                padding: 0 16px;
             }
-            
-            .message-content {
-                gap: 12px;
-            }
-            
+
             .input-container {
-                padding: 12px;
-            }
-            
-            .welcome-screen {
-                padding: 32px 16px;
+                padding: 16px;
             }
         }
     </style>
@@ -317,16 +334,25 @@ app.get('/', (req, res) => {
 <body>
     <div class="chat-container">
         <div class="header">
-            <h1>JARVIS</h1>
+            <h1>JARVIS AI</h1>
         </div>
-        
+
         <div class="messages-container" id="messagesContainer">
             <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+                        <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/>
+                    </svg>
+                </div>
                 <div class="welcome-title">How can I help you today?</div>
-                <div class="welcome-subtitle">I'm JARVIS, your AI assistant with specialized capabilities for recruitment and content creation.</div>
+                <div class="welcome-subtitle">I'm JARVIS, your AI assistant with specialized agents for recruitment and content creation.</div>
+                <div class="agent-pills">
+                    <div class="agent-pill">Recruitment</div>
+                    <div class="agent-pill">Content Creation</div>
+                </div>
             </div>
         </div>
-        
+
         <div class="input-container">
             <div class="input-wrapper">
                 <textarea 
@@ -356,32 +382,29 @@ app.get('/', (req, res) => {
 
         function addMessage(content, isUser = false, metadata = null) {
             hideWelcomeScreen();
-            
+
             const messagesContainer = document.getElementById('messagesContainer');
             const messageDiv = document.createElement('div');
             messageDiv.className = \`message \${isUser ? 'user' : 'assistant'}\`;
-            
-            const messageContent = document.createElement('div');
-            messageContent.className = 'message-content';
-            
+
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
             avatar.textContent = isUser ? 'U' : 'J';
-            
-            const textDiv = document.createElement('div');
-            textDiv.className = 'message-text';
-            
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
             if (isUser) {
-                textDiv.textContent = content;
+                contentDiv.textContent = content;
             } else {
                 // Format assistant response
                 if (typeof content === 'object') {
                     try {
                         const result = content.results && content.results[0] ? content.results[0].data : 'Processing completed';
-                        textDiv.innerHTML = \`
+                        contentDiv.innerHTML = \`
                             <div style="margin-bottom: 12px;">\${typeof result === 'string' ? result : JSON.stringify(result, null, 2)}</div>
                         \`;
-                        
+
                         if (metadata || (content.metadata && content.metadata.nlpAnalysis)) {
                             const meta = metadata || content.metadata;
                             const metaDiv = document.createElement('div');
@@ -392,42 +415,38 @@ app.get('/', (req, res) => {
                                 <strong>Agent:</strong> \${content.results?.[0]?.agentType || 'content_agent'} | 
                                 <strong>Model:</strong> \${content.results?.[0]?.metadata?.aiModel || 'claude-sonnet-4-20250514'}
                             \`;
-                            textDiv.appendChild(metaDiv);
+                            contentDiv.appendChild(metaDiv);
                         }
                     } catch (e) {
-                        textDiv.textContent = JSON.stringify(content, null, 2);
+                        contentDiv.textContent = JSON.stringify(content, null, 2);
                     }
                 } else {
-                    textDiv.textContent = content;
+                    contentDiv.textContent = content;
                 }
             }
-            
-            messageContent.appendChild(avatar);
-            messageContent.appendChild(textDiv);
-            messageDiv.appendChild(messageContent);
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
             messagesContainer.appendChild(messageDiv);
-            
+
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         function showThinking() {
             hideWelcomeScreen();
-            
+
             const messagesContainer = document.getElementById('messagesContainer');
             const thinkingDiv = document.createElement('div');
-            thinkingDiv.className = 'thinking';
+            thinkingDiv.className = 'message assistant';
             thinkingDiv.id = 'thinking-message';
-            
-            const messageContent = document.createElement('div');
-            messageContent.className = 'message-content';
-            
+
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
             avatar.textContent = 'J';
-            
-            const thinkingText = document.createElement('div');
-            thinkingText.className = 'thinking-text';
-            thinkingText.innerHTML = \`
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content thinking';
+            contentDiv.innerHTML = \`
                 JARVIS is thinking
                 <div class="typing-dots">
                     <span></span>
@@ -435,12 +454,11 @@ app.get('/', (req, res) => {
                     <span></span>
                 </div>
             \`;
-            
-            messageContent.appendChild(avatar);
-            messageContent.appendChild(thinkingText);
-            thinkingDiv.appendChild(messageContent);
+
+            thinkingDiv.appendChild(avatar);
+            thinkingDiv.appendChild(contentDiv);
             messagesContainer.appendChild(thinkingDiv);
-            
+
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
@@ -455,19 +473,19 @@ app.get('/', (req, res) => {
             const input = document.getElementById('messageInput');
             const sendButton = document.getElementById('sendButton');
             const message = input.value.trim();
-            
+
             if (!message || isWaiting) return;
-            
+
             isWaiting = true;
             sendButton.disabled = true;
-            
+
             // Add user message
             addMessage(message, true);
             input.value = '';
-            
+
             // Show thinking state
             showThinking();
-            
+
             try {
                 const response = await fetch('/api/v1/orchestrate', {
                     method: 'POST',
@@ -477,23 +495,23 @@ app.get('/', (req, res) => {
                         context: { userId: 'web-user', source: 'web' }
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 removeThinking();
-                
+
                 if (response.ok) {
                     addMessage(data, false, data.metadata);
                 } else {
                     addMessage('Sorry, I encountered an error processing your request. Please try again.', false);
                 }
-                
+
             } catch (error) {
                 removeThinking();
                 addMessage('Sorry, I encountered a network error. Please check your connection and try again.', false);
                 console.error('Error:', error);
             }
-            
+
             isWaiting = false;
             sendButton.disabled = false;
             input.focus();
@@ -524,38 +542,45 @@ app.get('/', (req, res) => {
 });
 
 // Health check endpoint
-app.get('/api/v1/health', (req, res) => {
+app.get("/api/v1/health", (req, res) => {
     res.json({
-        status: 'healthy',
-        service: 'jarvis-orchestrator',
+        status: "healthy",
+        service: "jarvis-orchestrator",
         timestamp: new Date().toISOString(),
-        version: '1.0.0'
+        version: "1.0.0",
     });
 });
 
 // Main orchestration endpoint
-app.post('/api/v1/orchestrate', orchestrate);
+app.post("/api/v1/orchestrate", orchestrate);
 
 // Error handling middleware
-app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    logger.error('Unhandled error:', error);
-    res.status(500).json({
-        error: 'Internal Server Error',
-        message: 'An unexpected error occurred during request processing',
-        timestamp: new Date().toISOString()
-    });
-});
+app.use(
+    (
+        error: any,
+        req: express.Request,
+        res: express.Response,
+        next: express.NextFunction,
+    ) => {
+        logger.error("Unhandled error:", error);
+        res.status(500).json({
+            error: "Internal Server Error",
+            message: "An unexpected error occurred during request processing",
+            timestamp: new Date().toISOString(),
+        });
+    },
+);
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use("*", (req, res) => {
     res.status(404).json({
-        error: 'Not Found',
+        error: "Not Found",
         message: `Route ${req.method} ${req.originalUrl} not found`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     });
 });
 
-app.listen(Number(PORT), '0.0.0.0', () => {
+app.listen(Number(PORT), "0.0.0.0", () => {
     logger.info(`JARVIS Orchestrator Service running on port ${PORT}`);
 });
 
