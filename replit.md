@@ -2,7 +2,7 @@
 
 ## Overview
 
-JARVIS is a sophisticated AI system built with a microservices architecture featuring an orchestrator service that routes user queries to specialized AI agents. The system leverages both OpenAI and Anthropic language models to provide intelligent responses across different domains like recruitment and content generation. The architecture supports both single-agent and parallel processing strategies with comprehensive logging and error handling.
+JARVIS is a sophisticated AI system built with a scalable microservices architecture featuring an orchestrator service that routes user queries to specialized AI agents. The system leverages both OpenAI and Anthropic language models to provide intelligent responses across different domains like recruitment and content generation. The architecture now includes comprehensive chat history management, session tracking for guest users, and performance analytics for AI agent optimization.
 
 ## User Preferences
 
@@ -70,3 +70,33 @@ The system implements sophisticated agent selection logic that considers:
 - **CORS**: Cross-origin request handling for web interface
 
 The system is designed to be highly modular and scalable, with clear separation of concerns between orchestration logic and AI processing capabilities.
+
+## Recent Changes - Scalable Chat History Architecture (August 2025)
+
+### New Database Schema
+- **chat_sessions**: Session management for guest users with optimized indexing
+- **chat_messages**: Message history with partitioning for scale
+- **agent_performance_logs**: Performance analytics for AI agent optimization
+
+### Enhanced Features
+- **Guest Session Management**: Automatic session and user ID generation for seamless guest experience
+- **Session Persistence**: Browser localStorage integration for session continuity
+- **Performance Analytics**: Comprehensive tracking of AI agent performance metrics
+- **Scalable Database Design**: Optimized indexes and partitioning for thousands of concurrent users
+- **Context-Aware AI**: Conversation history integration for contextual responses
+
+### Database Performance Optimizations
+- Smart indexing for fast context retrieval (session_id, created_at DESC)
+- Partitioned tables for efficient data management at scale
+- Connection pooling for high concurrency support
+- Performance monitoring with slow query detection
+
+### Key Scalability Features Implemented
+1. **Database Partitioning** - Messages partitioned by date for better performance
+2. **Smart Indexing** - Optimized indexes for common query patterns  
+3. **Connection Pooling** - Handle thousands of concurrent requests
+4. **Efficient Context Retrieval** - Only fetch recent relevant messages
+5. **Performance Analytics** - Track every request for optimization insights
+6. **Batch Operations** - Efficient database writes
+7. **Error Tracking** - Comprehensive error logging and analysis
+8. **Session Management** - Guest-friendly chat persistence without signup requirements

@@ -4,6 +4,8 @@ export interface OrchestrationRequest {
   context?: TaskContext;
   preferences?: UserPreferences;
   modelPreference?: 'auto' | 'claude-sonnet-4' | 'chatgpt-4o';
+  sessionId?: string;
+  userId?: string;
 }
 
 export interface OrchestrationResponse {
@@ -14,6 +16,9 @@ export interface OrchestrationResponse {
     nlpAnalysis: NLPAnalysis;
     processingTime: number;
     timestamp: string;
+    sessionId?: string;
+    userId?: string;
+    agentCount?: number;
   };
 }
 
@@ -23,6 +28,7 @@ export interface TaskContext {
   sessionId?: string;
   source?: 'web' | 'mobile' | 'api' | 'voice';
   metadata?: Record<string, any>;
+  conversationHistory?: any[];
 }
 
 export interface UserPreferences {

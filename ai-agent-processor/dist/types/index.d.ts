@@ -5,6 +5,7 @@ export interface AgentProcessingRequest {
     capabilities: string[];
     requestId: string;
     modelPreference?: 'auto' | 'claude-sonnet-4' | 'chatgpt-4o';
+    conversationHistory?: any[];
 }
 export interface AgentProcessingResponse {
     success: boolean;
@@ -27,6 +28,7 @@ export interface TaskContext {
     sessionId?: string;
     source?: 'web' | 'mobile' | 'api' | 'voice';
     metadata?: Record<string, any>;
+    conversationHistory?: any[];
 }
 export interface AgentError {
     code: string;

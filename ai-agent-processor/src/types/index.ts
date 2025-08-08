@@ -6,6 +6,7 @@ export interface AgentProcessingRequest {
   capabilities: string[];
   requestId: string;
   modelPreference?: 'auto' | 'claude-sonnet-4' | 'chatgpt-4o';
+  conversationHistory?: any[];
 }
 
 export interface AgentProcessingResponse {
@@ -31,6 +32,7 @@ export interface TaskContext {
   sessionId?: string;
   source?: 'web' | 'mobile' | 'api' | 'voice';
   metadata?: Record<string, any>;
+  conversationHistory?: any[];
 }
 
 // Error types

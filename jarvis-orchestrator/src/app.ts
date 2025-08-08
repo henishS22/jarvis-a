@@ -626,13 +626,29 @@ app.get("/", (req, res) => {
                 const modelSelector = document.getElementById('modelSelector');
                 const selectedModel = modelSelector.value;
                 
+                // Get or create session ID for chat continuity
+                let sessionId = localStorage.getItem('jarvis_session_id');
+                if (!sessionId) {
+                    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('jarvis_session_id', sessionId);
+                }
+                
+                // Get or create user ID for guest mode
+                let userId = localStorage.getItem('jarvis_user_id');
+                if (!userId) {
+                    userId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('jarvis_user_id', userId);
+                }
+                
                 const response = await fetch('/api/v1/orchestrate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         query: message,
-                        context: { userId: 'web-user', source: 'web' },
-                        modelPreference: selectedModel
+                        context: { userId, source: 'web', sessionId },
+                        modelPreference: selectedModel,
+                        sessionId,
+                        userId
                     })
                 });
 
