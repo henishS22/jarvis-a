@@ -41,15 +41,9 @@ app.get("/", (req, res) => {
         }
 
         body {
-<<<<<<< HEAD
             font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
             background: #212121;
             color: #ececf1;
-=======
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: #1a1a1a;
-            color: #ffffff;
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             height: 100vh;
             overflow: hidden;
         }
@@ -64,16 +58,10 @@ app.get("/", (req, res) => {
         }
 
         .header {
-<<<<<<< HEAD
-            padding: 12px 16px;
-            background: #212121;
-            border-bottom: 1px solid #565869;
-=======
             padding: 16px 20px;
             background: rgba(26, 26, 26, 0.95);
             border-bottom: 1px solid #333333;
             backdrop-filter: blur(10px);
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             position: sticky;
             top: 0;
             z-index: 100;
@@ -84,14 +72,10 @@ app.get("/", (req, res) => {
             font-weight: 600;
             color: #f7f7f8;
             text-align: center;
-<<<<<<< HEAD
-            margin: 0;
-=======
             background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
         }
 
         .messages-container {
@@ -115,11 +99,7 @@ app.get("/", (req, res) => {
             width: 64px;
             height: 64px;
             border-radius: 50%;
-<<<<<<< HEAD
-            background: #10a37f;
-=======
             background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             display: flex;
             align-items: center;
             justify-content: center;
@@ -129,19 +109,12 @@ app.get("/", (req, res) => {
 
         .welcome-title {
             font-size: 32px;
-<<<<<<< HEAD
-            font-weight: 400;
-            margin-bottom: 8px;
-            color: #f7f7f8;
-            line-height: 1.2;
-=======
             font-weight: 700;
             margin-bottom: 16px;
             background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
         }
 
         .welcome-subtitle {
@@ -161,15 +134,6 @@ app.get("/", (req, res) => {
         }
 
         .agent-pill {
-<<<<<<< HEAD
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #565869;
-            color: #ececf1;
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 400;
-=======
             background: rgba(0, 212, 255, 0.1);
             border: 1px solid rgba(0, 212, 255, 0.3);
             color: #00d4ff;
@@ -177,17 +141,18 @@ app.get("/", (req, res) => {
             border-radius: 20px;
             font-size: 14px;
             font-weight: 500;
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
         }
 
         .message {
-            margin: 24px 0;
+            margin: 12px 0;
             display: flex;
-            gap: 12px;
+            gap: 8px;
+            align-items: flex-start;
         }
 
         .message.user {
             flex-direction: row-reverse;
+            margin: 12px 0;
         }
 
         .message-avatar {
@@ -200,29 +165,29 @@ app.get("/", (req, res) => {
             justify-content: center;
             font-weight: 600;
             font-size: 14px;
+            margin-top: 2px;
         }
 
         .message.user .message-avatar {
-<<<<<<< HEAD
-            background: #5436da;
-=======
             background: #404040;
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             color: white;
         }
 
         .message.assistant .message-avatar {
-<<<<<<< HEAD
-            background: #10a37f;
-=======
             background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             color: white;
         }
 
         .message-content {
             flex: 1;
-            max-width: 70%;
+            min-width: 0;
+        }
+
+        .message.assistant .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-width: 0;
         }
 
         .message.user .message-content {
@@ -232,14 +197,18 @@ app.get("/", (req, res) => {
             color: #ececf1;
             font-size: 16px;
             line-height: 1.5;
+            margin: 0;
+            word-wrap: break-word;
         }
 
         .message.assistant .message-content {
             background: transparent;
-            padding: 0;
+            padding: 8px 0;
             line-height: 1.7;
             color: #ececf1;
             font-size: 16px;
+            margin: 0;
+            word-wrap: break-word;
         }
 
         .thinking {
@@ -258,15 +227,9 @@ app.get("/", (req, res) => {
         }
 
         .typing-dots span {
-<<<<<<< HEAD
-            width: 4px;
-            height: 4px;
-            background: #10a37f;
-=======
             width: 6px;
             height: 6px;
             background: #00d4ff;
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             border-radius: 50%;
             animation: typing 1.4s infinite;
         }
@@ -280,16 +243,10 @@ app.get("/", (req, res) => {
         }
 
         .input-container {
-<<<<<<< HEAD
-            padding: 16px 16px 24px 16px;
-            background: #212121;
-            border-top: 1px solid #565869;
-=======
             padding: 20px;
             background: rgba(26, 26, 26, 0.95);
             border-top: 1px solid #333333;
             backdrop-filter: blur(10px);
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
         }
 
         .input-wrapper {
@@ -315,11 +272,7 @@ app.get("/", (req, res) => {
         }
 
         .input-field:focus {
-<<<<<<< HEAD
-            border-color: #10a37f;
-=======
             border-color: #00d4ff;
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
         }
 
         .input-field::placeholder {
@@ -333,11 +286,7 @@ app.get("/", (req, res) => {
             transform: translateY(-50%);
             width: 32px;
             height: 32px;
-<<<<<<< HEAD
-            background: #ececf1;
-=======
             background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
             border: none;
             border-radius: 6px;
             color: #202123;
@@ -360,17 +309,34 @@ app.get("/", (req, res) => {
 
         .metadata {
             font-size: 12px;
-<<<<<<< HEAD
             color: #8e8ea0;
             margin-top: 8px;
             padding-top: 8px;
             border-top: 1px solid #565869;
-=======
-            color: #888;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid #444;
->>>>>>> 6534268 (Update the visual theme to a dark color scheme with cyan accents)
+            width: 100%;
+            clear: both;
+        }
+
+        .model-selector {
+            position: absolute;
+            top: 12px;
+            right: 60px;
+            z-index: 10;
+        }
+
+        .model-dropdown {
+            background: #40414f;
+            border: 1px solid #565869;
+            border-radius: 6px;
+            color: #ececf1;
+            padding: 4px 8px;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .model-dropdown:focus {
+            border-color: #00d4ff;
         }
 
         /* Scrollbar styling */
@@ -414,6 +380,13 @@ app.get("/", (req, res) => {
     <div class="chat-container">
         <div class="header">
             <h1>JARVIS AI</h1>
+            <div class="model-selector">
+                <select class="model-dropdown" id="modelSelector">
+                    <option value="auto">Auto</option>
+                    <option value="claude-sonnet-4">Claude Sonnet 4</option>
+                    <option value="chatgpt-4o">ChatGPT 4.0</option>
+                </select>
+            </div>
         </div>
 
         <div class="messages-container" id="messagesContainer">
@@ -476,28 +449,24 @@ app.get("/", (req, res) => {
             if (isUser) {
                 contentDiv.textContent = content;
             } else {
-                // Format assistant response
+                // Clean assistant response formatting - show only the content
                 if (typeof content === 'object') {
                     try {
+                        // Extract the actual AI response content
                         const result = content.results && content.results[0] ? content.results[0].data : 'Processing completed';
-                        contentDiv.innerHTML = \`
-                            <div style="margin-bottom: 12px;">\${typeof result === 'string' ? result : JSON.stringify(result, null, 2)}</div>
-                        \`;
-
-                        if (metadata || (content.metadata && content.metadata.nlpAnalysis)) {
-                            const meta = metadata || content.metadata;
-                            const metaDiv = document.createElement('div');
-                            metaDiv.className = 'metadata';
-                            metaDiv.innerHTML = \`
-                                <strong>Analysis:</strong> Intent: \${meta.nlpAnalysis?.intent || 'unknown'}, 
-                                Sentiment: \${meta.nlpAnalysis?.sentiment || 'neutral'} | 
-                                <strong>Agent:</strong> \${content.results?.[0]?.agentType || 'content_agent'} | 
-                                <strong>Model:</strong> \${content.results?.[0]?.metadata?.aiModel || 'claude-sonnet-4-20250514'}
-                            \`;
-                            contentDiv.appendChild(metaDiv);
+                        
+                        // Display only the clean content, properly formatted
+                        if (typeof result === 'string') {
+                            contentDiv.textContent = result;
+                        } else if (result && typeof result === 'object') {
+                            // If result is an object, try to extract meaningful content
+                            const extractedContent = result.content || result.text || result.response || result.analysis || JSON.stringify(result, null, 2);
+                            contentDiv.textContent = extractedContent;
+                        } else {
+                            contentDiv.textContent = 'Response received successfully';
                         }
                     } catch (e) {
-                        contentDiv.textContent = JSON.stringify(content, null, 2);
+                        contentDiv.textContent = 'Response received successfully';
                     }
                 } else {
                     contentDiv.textContent = content;
@@ -505,7 +474,95 @@ app.get("/", (req, res) => {
             }
 
             messageDiv.appendChild(avatar);
-            messageDiv.appendChild(contentDiv);
+            
+            // Create wrapper for content and metadata to ensure proper stacking
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = 'message-wrapper';
+            messageWrapper.appendChild(contentDiv);
+            
+            // Add metadata display for assistant messages
+            if (!isUser && metadata) {
+                const metadataDiv = document.createElement('div');
+                metadataDiv.className = 'metadata';
+                
+                let metadataContent = '';
+                
+                // Extract intent information
+                if (metadata.nlpAnalysis && metadata.nlpAnalysis.intent) {
+                    const intent = metadata.nlpAnalysis.intent;
+                    // Handle both string and object intent values
+                    const intentValue = typeof intent === 'string' ? intent : 
+                                       (intent.category || intent.action || JSON.stringify(intent));
+                    metadataContent += \`Intent: \${intentValue} | \`;
+                }
+                
+                // Extract processing time
+                if (metadata.processingTime) {
+                    metadataContent += \`Processing Time: \${metadata.processingTime}ms | \`;
+                }
+                
+                // Extract agent information
+                if (metadata.agentCount) {
+                    metadataContent += \`Agents: \${metadata.agentCount} | \`;
+                }
+                
+                // Extract model information from results - always show model
+                let modelInfo = 'Auto'; // Default fallback
+                let agentInfo = null;
+                
+                // Try to get model from response data
+                if (content && typeof content === 'object' && content.results && content.results[0]) {
+                    const result = content.results[0];
+                    
+                    // Extract agent type
+                    if (result.agentType) {
+                        agentInfo = result.agentType.replace('_', ' ');
+                        metadataContent += \`Agent: \${agentInfo} | \`;
+                    }
+                    
+                    // Extract model from metadata
+                    if (result.metadata && result.metadata.aiModel) {
+                        const aiModel = result.metadata.aiModel;
+                        // Map technical model names to user-friendly names
+                        const modelMappings = {
+                            'claude-sonnet-4-20250514': 'Claude Sonnet 4',
+                            'claude-3-7-sonnet-20250219': 'Claude 3.7 Sonnet',
+                            'claude-3-5-sonnet-20241022': 'Claude 3.5 Sonnet',
+                            'gpt-4o': 'ChatGPT 4.0',
+                            'gpt-4': 'ChatGPT 4',
+                            'gpt-3.5-turbo': 'ChatGPT 3.5'
+                        };
+                        modelInfo = modelMappings[aiModel] || aiModel;
+                    }
+                }
+                
+                // Fallback: try to determine from user's selection if no model found in response
+                if (modelInfo === 'Auto') {
+                    const modelSelector = document.getElementById('modelSelector');
+                    if (modelSelector && modelSelector.value !== 'auto') {
+                        if (modelSelector.value === 'claude-sonnet-4') {
+                            modelInfo = 'Claude Sonnet 4';
+                        } else if (modelSelector.value === 'chatgpt-4o') {
+                            modelInfo = 'ChatGPT 4.0';
+                        }
+                    }
+                }
+                
+                metadataContent += \`Model: \${modelInfo} | \`;
+                
+                // Add timestamp
+                const timestamp = new Date().toLocaleTimeString();
+                metadataContent += \`\${timestamp}\`;
+                
+                // Remove trailing separator if exists
+                metadataContent = metadataContent.replace(/ \| $/, '');
+                
+                metadataDiv.textContent = metadataContent;
+                messageWrapper.appendChild(metadataDiv);
+            }
+            
+            messageDiv.appendChild(messageWrapper);
+
             messagesContainer.appendChild(messageDiv);
 
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -566,12 +623,16 @@ app.get("/", (req, res) => {
             showThinking();
 
             try {
+                const modelSelector = document.getElementById('modelSelector');
+                const selectedModel = modelSelector.value;
+                
                 const response = await fetch('/api/v1/orchestrate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         query: message,
-                        context: { userId: 'web-user', source: 'web' }
+                        context: { userId: 'web-user', source: 'web' },
+                        modelPreference: selectedModel
                     })
                 });
 

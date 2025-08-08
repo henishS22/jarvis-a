@@ -39,6 +39,24 @@ const openaiService = __importStar(require("../services/openaiService"));
 const anthropicService = __importStar(require("../services/anthropicService"));
 const logger_1 = require("../utils/logger");
 const validation_1 = require("../middleware/validation");
+function getModelPreferenceOverride(modelPreference) {
+    switch (modelPreference) {
+        case 'claude-sonnet-4':
+            return {
+                service: 'anthropic',
+                model: 'claude-sonnet-4-20250514',
+                reasoning: 'User selected Claude Sonnet 4'
+            };
+        case 'chatgpt-4o':
+            return {
+                service: 'openai',
+                model: 'gpt-4o',
+                reasoning: 'User selected ChatGPT 4.0'
+            };
+        default:
+            throw new Error(`Unsupported model preference: ${modelPreference}`);
+    }
+}
 async function processWithAgent(req, res) {
     const requestId = req.get('X-Request-ID') || `agent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const startTime = Date.now();
@@ -62,7 +80,19 @@ async function processWithAgent(req, res) {
             return;
         }
         const agentRequest = req.body;
-        const serviceSelection = await (0, agentSelector_1.selectAIService)(agentRequest.agentType, agentRequest.query, agentRequest.capabilities);
+        let serviceSelection;
+        if (agentRequest.modelPreference && agentRequest.modelPreference !== 'auto') {
+            serviceSelection = getModelPreferenceOverride(agentRequest.modelPreference);
+            logger_1.logger.info('Using user-specified model preference', {
+                requestId,
+                modelPreference: agentRequest.modelPreference,
+                service: serviceSelection.service,
+                model: serviceSelection.model
+            });
+        }
+        else {
+            serviceSelection = await (0, agentSelector_1.selectAIService)(agentRequest.agentType, agentRequest.query, agentRequest.capabilities);
+        }
         logger_1.logger.info('AI service selected', {
             requestId,
             service: serviceSelection.service,

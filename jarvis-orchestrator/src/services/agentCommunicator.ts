@@ -109,7 +109,8 @@ async function callAgent(
     query: request.query,
     context: request.context,
     capabilities: agent.capabilities,
-    requestId
+    requestId,
+    modelPreference: request.modelPreference || 'auto'
   };
 
   try {

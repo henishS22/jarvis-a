@@ -51,18 +51,14 @@ function determineRoutingStrategy(nlpAnalysis: NLPAnalysis, context?: TaskContex
 }
 
 async function selectAgents(nlpAnalysis: NLPAnalysis, strategy: string, context?: TaskContext): Promise<AgentSelection[]> {
-  const { intent, entities } = nlpAnalysis;
+  const { intent } = nlpAnalysis;
   const selectedAgents: AgentSelection[] = [];
 
-  // Primary agent selection based on intent
+  // Simplified agent selection - directly map intent to agent
   const primaryAgent = selectPrimaryAgent(intent.category);
   if (primaryAgent) {
     selectedAgents.push(primaryAgent);
   }
-
-  // Secondary agents based on entities
-  const secondaryAgents = await selectSecondaryAgents(entities, intent.category);
-  selectedAgents.push(...secondaryAgents);
 
   // Ensure we have at least one agent - default to content agent
   if (selectedAgents.length === 0) {
@@ -106,88 +102,20 @@ function selectPrimaryAgent(intentCategory: string): AgentSelection | null {
     };
 }
 
-async function selectSecondaryAgents(entities: any[], primaryIntent: string): Promise<AgentSelection[]> {
-    const secondaryAgents: AgentSelection[] = [];
-
-    // Simplified logic for two-agent system
-    // If primary is recruitment but we detect content needs, add content agent
-    if (primaryIntent === 'recruitment' && entities.some(e => e.type === 'skill')) {
-      secondaryAgents.push({
-        type: 'content_agent',
-        reasoning: 'Content generation needed for recruitment documentation',
-        capabilities: ['text_generation', 'documentation']
-      });
-    }
-
-    // If primary is content but we detect recruitment entities, add recruitment agent
-    if (primaryIntent === 'content_generation' && (
-        entities.some(e => e.type === 'person') ||
-        entities.some(e => e.type === 'skill')
-      )) {
-      secondaryAgents.push({
-        type: 'recruitment_agent',
-        reasoning: 'Recruitment context detected in content request',
-        capabilities: ['candidate_analysis', 'skill_assessment']
-      });
-    }
-
-    return secondaryAgents;
-}
 
 function selectFallbackAgents(selectedAgents: AgentSelection[]): AgentSelection[] {
-    const fallbacks: AgentSelection[] = [];
-
-    // Cross-agent fallback strategy for two-agent system
-    selectedAgents.forEach(agent => {
-      if (agent.type === 'recruitment_agent') {
-        fallbacks.push({
-          type: 'content_agent',
-          reasoning: 'Content agent fallback for recruitment tasks',
-          capabilities: ['text_processing', 'data_analysis']
-        });
-      } else if (agent.type === 'content_agent') {
-        fallbacks.push({
-          type: 'recruitment_agent',
-          reasoning: 'Recruitment agent fallback for content tasks',
-          capabilities: ['general_processing', 'data_analysis']
-        });
-      }
-    });
-
-    // Ultimate fallback - use content agent as general purpose
-    if (fallbacks.length === 0) {
-      fallbacks.push({
-        type: 'content_agent',
-        reasoning: 'Content agent as ultimate fallback for general assistance',
-        capabilities: ['general_query_processing', 'text_generation']
-      });
-    }
-
-    return fallbacks;
+    // Simplified fallback - always use content agent as fallback
+    return [{
+      type: 'content_agent',
+      reasoning: 'Content agent as fallback for general assistance',
+      capabilities: ['general_query_processing', 'text_generation']
+    }];
 }
-
-// Remove this function completely as confidence is eliminated
 
 function generateRoutingReasoning(nlpAnalysis: NLPAnalysis, selectedAgents: AgentSelection[]): string {
-    const reasons = [
-      `Intent "${nlpAnalysis.intent.category}" detected`,
-      `Selected ${selectedAgents.length} agent(s) for processing`
-    ];
-
-    if (selectedAgents.length > 1) {
-      reasons.push(`Multi-agent approach chosen for comprehensive handling`);
-    }
-
-    return reasons.join('. ');
+    return `Intent "${nlpAnalysis.intent.category}" detected. Selected ${selectedAgents.length} agent(s) for processing.`;
 }
-
-// Remove this function completely as estimatedProcessingTime is eliminated
-
-// Remove this function completely as sequential processing is eliminated
 
 function isSingleDomainTask(intentCategory: string): boolean {
-    // Both agent types can handle single-domain tasks effectively
     return ['content_generation', 'recruitment'].includes(intentCategory);
 }
-
-// Remove this function completely as processing time estimation is eliminated

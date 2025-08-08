@@ -3,6 +3,7 @@ export interface OrchestrationRequest {
   query: string;
   context?: TaskContext;
   preferences?: UserPreferences;
+  modelPreference?: 'auto' | 'claude-sonnet-4' | 'chatgpt-4o';
 }
 
 export interface OrchestrationResponse {
@@ -11,13 +12,6 @@ export interface OrchestrationResponse {
   results: AgentResult[];
   metadata: {
     nlpAnalysis: NLPAnalysis;
-    routingDecision: {
-      strategy: string;
-      selectedAgents: Array<{
-        type: string;
-        reasoning: string;
-      }>;
-    };
     processingTime: number;
     timestamp: string;
   };
@@ -35,28 +29,19 @@ export interface UserPreferences {
   preferredAgents?: string[];
   excludedAgents?: string[];
   maxProcessingTime?: number;
+  modelPreference?: 'auto' | 'claude-sonnet-4' | 'chatgpt-4o';
   responseFormat?: 'detailed' | 'summary' | 'minimal';
 }
 
-// NLP Analysis types - simplified to only include core features
+// Simplified NLP Analysis - only intent detection for routing
 export interface NLPAnalysis {
   intent: QueryIntent;
-  entities: EntityExtraction[];
-  sentiment: 'positive' | 'neutral' | 'negative';
   timestamp: string;
 }
 
 export interface QueryIntent {
   category: 'recruitment' | 'content_generation';
   action: string;
-  subcategory: string;
-}
-
-export interface EntityExtraction {
-  type: 'email' | 'phone' | 'date' | 'currency' | 'person' | 'organization' | 'location';
-  value: string;
-  startIndex: number;
-  endIndex: number;
 }
 
 // Agent routing and selection types
@@ -101,7 +86,6 @@ export interface AgentProcessingRequest {
   query: string;
   context?: TaskContext;
   capabilities: string[];
-  maturityLevel: string;
   requestId: string;
 }
 

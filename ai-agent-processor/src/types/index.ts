@@ -5,6 +5,7 @@ export interface AgentProcessingRequest {
   context?: TaskContext;
   capabilities: string[];
   requestId: string;
+  modelPreference?: 'auto' | 'claude-sonnet-4' | 'chatgpt-4o';
 }
 
 export interface AgentProcessingResponse {

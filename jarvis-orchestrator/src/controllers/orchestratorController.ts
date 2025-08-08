@@ -54,13 +54,6 @@ export async function orchestrate(req: Request, res: Response): Promise<void> {
         results: agentResults,
         metadata: {
           nlpAnalysis,
-          routingDecision: {
-            strategy: routingDecision.strategy,
-            selectedAgents: routingDecision.selectedAgents.map((a: AgentSelection) => ({
-              type: a.type,
-              reasoning: a.reasoning
-            }))
-          },
           processingTime: Date.now() - parseInt(requestId.split('_')[1]),
           timestamp: new Date().toISOString()
         }

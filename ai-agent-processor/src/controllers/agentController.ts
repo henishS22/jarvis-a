@@ -6,6 +6,28 @@ import { logger } from '../utils/logger';
 import { validateAgentRequest } from '../middleware/validation';
 import { AgentProcessingRequest, AgentProcessingResponse } from '../types';
 
+/**
+ * Maps user-friendly model names to actual service and model configurations
+ */
+function getModelPreferenceOverride(modelPreference: string) {
+  switch (modelPreference) {
+    case 'claude-sonnet-4':
+      return {
+        service: 'anthropic' as const,
+        model: 'claude-sonnet-4-20250514',
+        reasoning: 'User selected Claude Sonnet 4'
+      };
+    case 'chatgpt-4o':
+      return {
+        service: 'openai' as const,
+        model: 'gpt-4o',
+        reasoning: 'User selected ChatGPT 4.0'
+      };
+    default:
+      throw new Error(`Unsupported model preference: ${modelPreference}`);
+  }
+}
+
 export async function processWithAgent(req: Request, res: Response): Promise<void> {
     const requestId = req.get('X-Request-ID') || `agent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const startTime = Date.now();
@@ -34,12 +56,23 @@ export async function processWithAgent(req: Request, res: Response): Promise<voi
 
       const agentRequest: AgentProcessingRequest = req.body;
 
-      // Select appropriate AI service and model
-      const serviceSelection = await selectAIService(
-        agentRequest.agentType,
-        agentRequest.query,
-        agentRequest.capabilities
-      );
+      // Select appropriate AI service and model, respecting user preference
+      let serviceSelection;
+      if (agentRequest.modelPreference && agentRequest.modelPreference !== 'auto') {
+        serviceSelection = getModelPreferenceOverride(agentRequest.modelPreference);
+        logger.info('Using user-specified model preference', {
+          requestId,
+          modelPreference: agentRequest.modelPreference,
+          service: serviceSelection.service,
+          model: serviceSelection.model
+        });
+      } else {
+        serviceSelection = await selectAIService(
+          agentRequest.agentType,
+          agentRequest.query,
+          agentRequest.capabilities
+        );
+      }
 
       logger.info('AI service selected', {
         requestId,
