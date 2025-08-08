@@ -503,25 +503,15 @@ function addMessage(content, isUser = false, metadata = null, hideWelcome = true
         
         metadataContent += 'Model: ' + modelInfo + ' | ';
         
-        // Add timestamp - use provided timestamp or current time
+        // Add timestamp - use provided timestamp or current time in browser's local format
         let timestamp;
         if (messageTimestamp) {
-            // Use the actual message timestamp for loaded messages, convert to local time
+            // Use the actual message timestamp for loaded messages, in browser's local time format
             const messageDate = new Date(messageTimestamp);
-            timestamp = messageDate.toLocaleTimeString(undefined, {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
+            timestamp = messageDate.toLocaleTimeString();
         } else {
-            // Use current time for new messages
-            timestamp = new Date().toLocaleTimeString(undefined, {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
+            // Use current time for new messages in browser's local time format
+            timestamp = new Date().toLocaleTimeString();
         }
         metadataContent += timestamp;
         
